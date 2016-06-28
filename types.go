@@ -7,6 +7,7 @@ import (
 var (
 	DefaultBatchSize  = 1000
 	TrackingTableName = "EtlPosition"
+	ExtractorMap      = make(map[string]Extractor)
 )
 
 // SqlUntypedRow represents a single row of SQL data which is not strongly

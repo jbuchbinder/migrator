@@ -49,8 +49,9 @@ type Migrator struct {
 
 	sourceDb      *sql.DB
 	destinationDb *sql.DB
-	quitChan      chan bool
-	initialized   bool
+	//quitChan      chan bool
+	terminated  bool
+	initialized bool
 }
 
 func (m *Migrator) Init() error {
@@ -96,7 +97,7 @@ func (m *Migrator) Init() error {
 	return nil
 }
 
-func (m Migrator) Run() error {
+func (m *Migrator) Run() error {
 	tag := "Migrator.Run(): "
 
 	if !m.initialized {
@@ -106,32 +107,30 @@ func (m Migrator) Run() error {
 	go func() {
 		log.Printf(tag + "Entering loop")
 		for {
-			select {
-			case <-m.quitChan:
+			if m.terminated {
 				log.Printf(tag + "Received quit signal")
 				m.Close()
 				return
-			default:
-				// Actual run
-				ts, err := GetTrackingStatus(m.destinationDb, m.SourceDsn.DBName, m.SourceTable)
-				if err != nil {
-					log.Printf(tag + "GetTrackingStatus: " + err.Error())
-					continue
-				}
+			}
+			// Actual run
+			ts, err := GetTrackingStatus(m.destinationDb, m.SourceDsn.DBName, m.SourceTable)
+			if err != nil {
+				log.Printf(tag + "GetTrackingStatus: " + err.Error())
+				continue
+			}
 
-				more, rows, err := m.Extractor(m.sourceDb, m.SourceDsn.DBName, m.SourceTable, ts, m.Parameters)
-				if err != nil {
-					log.Printf(tag + "Extractor: " + err.Error())
-				}
-				log.Printf(tag+"Extracted %d rows", len(rows))
-				err = m.Loader(m.destinationDb, m.Transformer(m.DestinationDsn.DBName, m.DestinationTable, rows, m.Parameters), m.Parameters)
-				if err != nil {
-					log.Printf(tag + "Loader: " + err.Error())
-				}
-				if !more {
-					log.Printf(tag + "No more rows detected to process, sleeping for 5 sec")
-					time.Sleep(time.Second * 5)
-				}
+			more, rows, err := m.Extractor(m.sourceDb, m.SourceDsn.DBName, m.SourceTable, ts, m.Parameters)
+			if err != nil {
+				log.Printf(tag + "Extractor: " + err.Error())
+			}
+			log.Printf(tag+"Extracted %d rows", len(rows))
+			err = m.Loader(m.destinationDb, m.Transformer(m.DestinationDsn.DBName, m.DestinationTable, rows, m.Parameters), m.Parameters)
+			if err != nil {
+				log.Printf(tag + "Loader: " + err.Error())
+			}
+			if !more {
+				log.Printf(tag + "No more rows detected to process, sleeping for 5 sec")
+				time.Sleep(time.Second * 5)
 			}
 
 			// Sleep for 150ms to avoid pileups
@@ -142,7 +141,7 @@ func (m Migrator) Run() error {
 	return nil
 }
 
-func (m Migrator) Close() {
+func (m *Migrator) Close() {
 	tag := "Migrator.Close(): "
 
 	log.Printf(tag + "Closing connections")
@@ -158,7 +157,7 @@ func (m Migrator) Close() {
 	m.initialized = false
 }
 
-func (m Migrator) Quit() error {
+func (m *Migrator) Quit() error {
 	tag := "Migrator.Quit(): "
 
 	if !m.initialized {
@@ -167,7 +166,8 @@ func (m Migrator) Quit() error {
 
 	log.Printf(tag + "Sending quit signal")
 
-	m.quitChan <- true
+	//m.quitChan <- true
+	m.terminated = true
 
 	return nil
 }

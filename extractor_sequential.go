@@ -6,6 +6,10 @@ import (
 	"log"
 )
 
+func init() {
+	ExtractorMap["sequential"] = ExtractorSequential
+}
+
 var ExtractorSequential = func(db *sql.DB, dbName, tableName string, ts TrackingStatus, params Parameters) (bool, []SqlUntypedRow, error) {
 	tag := fmt.Sprintf("ExtractorSequential[%s.%s]: ", dbName, tableName)
 

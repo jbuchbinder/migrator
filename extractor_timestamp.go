@@ -7,6 +7,10 @@ import (
 	"time"
 )
 
+func init() {
+	ExtractorMap["timestamp"] = ExtractorTimestamp
+}
+
 var ExtractorTimestamp = func(db *sql.DB, dbName, tableName string, ts TrackingStatus, params Parameters) (bool, []SqlUntypedRow, error) {
 	tag := fmt.Sprintf("ExtractorTimestamp[%s.%s]: ", dbName, tableName)
 
