@@ -12,13 +12,27 @@ import (
 // batched inserts to insert the data into an existing sql.Tx (transaction)
 // object.
 func BatchedInsert(tx *sql.Tx, table string, data []SqlUntypedRow, size int) error {
+	return BatchedQuery(tx, table, data, size, "INSERT")
+}
+
+// BatchedReplace takes an array of SQL data rows and creates a series of
+// batched replaces to replace the data into an existing sql.Tx (transaction)
+// object.
+func BatchedReplace(tx *sql.Tx, table string, data []SqlUntypedRow, size int) error {
+	return BatchedQuery(tx, table, data, size, "REPLACE")
+}
+
+// BatchedQuery takes an array of SQL data rows and creates a series of
+// batched queries to insert/replace the data into an existing sql.Tx
+// (transaction) object.
+func BatchedQuery(tx *sql.Tx, table string, data []SqlUntypedRow, size int, op string) error {
 	// Pull column names from first row
 	if len(data) < 1 {
-		return errors.New("BatchedInsert(): no data presented")
+		return errors.New("BatchedQuery(): no data presented")
 	}
 	keys := reflect.ValueOf(data[0]).MapKeys()
 	if len(keys) < 1 {
-		return errors.New("BatchedInsert(): no columns presented")
+		return errors.New("BatchedQuery(): no columns presented")
 	}
 
 	if size < 1 {
@@ -31,7 +45,14 @@ func BatchedInsert(tx *sql.Tx, table string, data []SqlUntypedRow, size int) err
 
 		// Header is always the same
 		prepared := new(bytes.Buffer)
-		prepared.WriteString("INSERT INTO `" + table + "` ( ")
+		switch op {
+		case "INSERT":
+			prepared.WriteString("INSERT INTO")
+		case "REPLACE":
+			prepared.WriteString("REPLACE INTO")
+		default:
+		}
+		prepared.WriteString(" `" + table + "` ( ")
 		for iter, k := range keys {
 			if iter != 0 {
 				prepared.WriteString(", ")
