@@ -63,11 +63,16 @@ func main() {
 	}
 
 	if config.Timeout != 0 {
-		log.Printf("Sleeping for %d seconds waiting for runs to finish")
-		time.Sleep(config.Timeout * time.Second)
+		log.Printf("Sleeping for %d seconds waiting for runs to finish", config.Timeout)
+		time.Sleep(time.Duration(config.Timeout) * time.Second)
 
 		for i := range migrators {
 			migrators[i].Quit()
 		}
+		return
+	}
+
+	for {
+		time.Sleep(500 * time.Millisecond)
 	}
 }
