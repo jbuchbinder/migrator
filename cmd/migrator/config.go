@@ -5,10 +5,6 @@ import (
 	"io/ioutil"
 )
 
-var (
-	Config *MigratorConfig
-)
-
 // MigratorConfig defines the basic structure which is deserialized from the
 // migrator YAML configuration file.
 type MigratorConfig struct {

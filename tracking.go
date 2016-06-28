@@ -20,15 +20,17 @@ type TrackingStatus struct {
 	LastRun            NullTime `db:"lastRun"`
 }
 
+// String produces a human readable representation of a TrackingStatus object.
 func (t TrackingStatus) String() string {
 	out := "TrackingStatus[" + t.SourceDatabase + "." + t.SourceTable + "]: "
 	if t.TimestampPosition.Valid {
 		return out + t.TimestampPosition.Time.String()
-	} else {
-		return out + fmt.Sprintf("%d", t.SequentialPosition)
 	}
+	return out + fmt.Sprintf("%d", t.SequentialPosition)
 }
 
+// SerializeNewTrackingStatus serializes a TrackingStatus object to its
+// database table.
 func SerializeNewTrackingStatus(tt TrackingStatus) error {
 	if tt.SourceDatabase == "" || tt.SourceTable == "" || tt.ColumnName == "" {
 		return errors.New("SerializeNewTrackingStatus(): Unable to write incomplete record to database")
@@ -37,6 +39,8 @@ func SerializeNewTrackingStatus(tt TrackingStatus) error {
 	return err
 }
 
+// GetTrackingStatus retrieves a TrackingStatus object from its underlying
+// database table.
 func GetTrackingStatus(db *sql.DB, sourceDatabase, sourceTable string) (TrackingStatus, error) {
 	var out TrackingStatus
 	err := db.QueryRow("SELECT * FROM `"+TrackingTableName+"` WHERE sourceDatabase = ? AND sourceTable = ? LIMIT 1", sourceDatabase, sourceTable).Scan(&out.SourceDatabase, &out.SourceTable, &out.ColumnName, &out.SequentialPosition, &out.TimestampPosition, &out.LastRun)
@@ -44,6 +48,8 @@ func GetTrackingStatus(db *sql.DB, sourceDatabase, sourceTable string) (Tracking
 	return out, err
 }
 
+// GetTrackingStatusSequential retrieves the sequentialPosition for a
+// TrackingStatus from its underlying database table.
 func GetTrackingStatusSequential(db *sql.DB, sourceDatabase, sourceTable string) (int64, error) {
 	var seq int64
 	err := db.QueryRow("SELECT sequentialPosition FROM `"+TrackingTableName+"` WHERE sourceDatabase = ? AND sourceTable = ? LIMIT 1", sourceDatabase, sourceTable).Scan(&seq)
@@ -53,6 +59,8 @@ func GetTrackingStatusSequential(db *sql.DB, sourceDatabase, sourceTable string)
 	return seq, err
 }
 
+// GetTrackingStatusTimestamp retrieves the timestampPosition for a
+// TrackingStatus from its underlying database table.
 func GetTrackingStatusTimestamp(db *sql.DB, sourceDatabase, sourceTable string) (NullTime, error) {
 	var seq NullTime
 	err := db.QueryRow("SELECT timestampPosition FROM `"+TrackingTableName+"` WHERE sourceDatabase = ? AND sourceTable = ? LIMIT 1", sourceDatabase, sourceTable).Scan(&seq)
@@ -63,17 +71,23 @@ func GetTrackingStatusTimestamp(db *sql.DB, sourceDatabase, sourceTable string) 
 
 }
 
+// SerializeTrackingStatus serializes a copy of an actively modified
+// TrackingStatus to its underlying database table.
 func SerializeTrackingStatus(db *sql.DB, ts TrackingStatus) error {
 	log.Printf("SerializeTrackingStatus(): %s", ts)
 	_, err := db.Exec("UPDATE `"+TrackingTableName+"` SET sequentialPosition = ?, timestampPosition = ?, lastRun = ? WHERE sourceDatabase = ? AND sourceTable = ?", ts.SequentialPosition, ts.TimestampPosition, ts.LastRun, ts.SourceDatabase, ts.SourceTable)
 	return err
 }
 
+// SetTrackingStatusSequential updates a TrackingStatus object's
+// sequentialPosition in its underlying database table.
 func SetTrackingStatusSequential(db *sql.DB, sourceDatabase, sourceTable string, seq int64) error {
 	_, err := db.Exec("UPDATE `"+TrackingTableName+"` SET sequentialPosition = ?, lastRun = ? WHERE sourceDatabase = ? AND sourceTable = ?", seq, time.Now(), sourceDatabase, sourceTable)
 	return err
 }
 
+// SetTrackingStatusTimestamp updates a TrackingStatus object's
+// timestampPosition in its underlying database table.
 func SetTrackingStatusTimestamp(db *sql.DB, sourceDatabase, sourceTable string, stamp time.Time) error {
 	_, err := db.Exec("UPDATE `"+TrackingTableName+"` SET timestampPosition = ?, lastRun = ? WHERE sourceDatabase = ? AND sourceTable = ?", stamp, time.Now(), sourceDatabase, sourceTable)
 	return err
