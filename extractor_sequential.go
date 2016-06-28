@@ -17,6 +17,7 @@ var ExtractorSequential = func(db *sql.DB, dbName, tableName string, ts Tracking
 	var maxSeq int64
 
 	batchSize := paramInt(params, "BatchSize", DefaultBatchSize)
+	debug := paramBool(params, "Debug", false)
 
 	rows, err := db.Query("SELECT * FROM `"+tableName+"` WHERE `"+ts.ColumnName+"` > ? LIMIT ?", ts.SequentialPosition, batchSize)
 	if err != nil {
@@ -27,7 +28,9 @@ var ExtractorSequential = func(db *sql.DB, dbName, tableName string, ts Tracking
 	if err != nil {
 		return false, data, err
 	}
-	log.Printf(tag+"Columns %v", cols)
+	if debug {
+		log.Printf(tag+"Columns %v", cols)
+	}
 	dataCount := 0
 	for rows.Next() {
 		dataCount++

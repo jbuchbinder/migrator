@@ -1,4 +1,6 @@
 # TODO
 
-- [ ] Tracking: Create tracking table for migrator to keep track of the
-      positions in the source database which have been processed.
+- [ ] Tracking: Change API to only commit tracking table data during
+      loading phase so that a failure to write will not result in data
+      not being retried.
+

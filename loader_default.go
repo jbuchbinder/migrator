@@ -10,10 +10,12 @@ var DefaultLoader = func(db *sql.DB, dbName, tableName string, data []SqlUntyped
 	tag := "DefaultLoader(" + dbName + "." + tableName + "): "
 
 	size := paramInt(params, "InsertBatchSize", 100)
+	//debug := paramBool(params, "Debug", false)
 
 	log.Printf(tag+"Beginning transaction, InsertBatchSize == %d", size)
 	tx, err := db.Begin()
 	if err != nil {
+		log.Printf(tag + "Transaction start: " + err.Error())
 		return err
 	}
 	err = BatchedInsert(tx, tableName, data, size)
@@ -24,6 +26,7 @@ var DefaultLoader = func(db *sql.DB, dbName, tableName string, data []SqlUntyped
 			return err
 		}
 	}
+
 	log.Printf(tag + "Committing transaction")
 	return tx.Commit()
 }

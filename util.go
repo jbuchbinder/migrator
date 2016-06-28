@@ -39,3 +39,15 @@ func paramInt(params map[string]interface{}, key string, defaultValue int) int {
 	}
 	return defaultValue
 }
+
+func paramBool(params map[string]interface{}, key string, defaultValue bool) bool {
+	out := defaultValue
+	if _, ok := params[key]; ok {
+		out, ok = params[key].(bool)
+		if !ok {
+			return defaultValue
+		}
+		return out
+	}
+	return defaultValue
+}
