@@ -20,7 +20,7 @@ var ExtractorTimestamp = func(db *sql.DB, dbName, tableName string, ts TrackingS
 	batchSize := paramInt(params, "BatchSize", DefaultBatchSize)
 	debug := paramBool(params, "Debug", false)
 
-	rows, err := db.Query("SELECT * FROM `"+tableName+"` WHERE `"+ts.ColumnName+"` > ? LIMIT ?", ts.SequentialPosition, batchSize)
+	rows, err := db.Query("SELECT * FROM `"+tableName+"` WHERE `"+ts.ColumnName+"` > ? LIMIT ?", ts.TimestampPosition, batchSize)
 	if err != nil {
 		return false, data, err
 	}
