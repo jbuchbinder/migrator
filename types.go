@@ -1,0 +1,28 @@
+package migrator
+
+import (
+	"database/sql"
+)
+
+var (
+	DefaultBatchSize  = 1000
+	TrackingTableName = "EtlPosition"
+)
+
+// SqlUntypedRow represents a single row of SQL data which is not strongly
+// typed to a structure. This obviates the need to create Golang-level language
+// structures to represent tables.
+type SqlUntypedRow map[string]interface{}
+
+type Parameters map[string]interface{}
+
+// Extractor is a callback function type
+type Extractor func(*sql.DB, string, string, TrackingStatus, Parameters) (bool, []SqlUntypedRow, error)
+
+// Transformer is a callback function type which transforms an array of untyped
+// information into another array of untyped information. This is used for the
+// "transform" step of the ETL process.
+type Transformer func([]SqlUntypedRow, Parameters) []SqlUntypedRow
+
+// Loader is a callback function type
+type Loader func(*sql.DB, string, string, []SqlUntypedRow, Parameters) error
