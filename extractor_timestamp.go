@@ -11,6 +11,8 @@ func init() {
 	ExtractorMap["timestamp"] = ExtractorTimestamp
 }
 
+// ExtractorTimestamp is an Extractor instance which uses a DATETIME/TIMESTAMP
+// field to determine which rows to pull from the source database table.
 var ExtractorTimestamp = func(db *sql.DB, dbName, tableName string, ts TrackingStatus, params Parameters) (bool, []SqlUntypedRow, TrackingStatus, error) {
 	tag := fmt.Sprintf("ExtractorTimestamp[%s.%s]: ", dbName, tableName)
 

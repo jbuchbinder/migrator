@@ -49,11 +49,12 @@ type Migrator struct {
 
 	sourceDb      *sql.DB
 	destinationDb *sql.DB
-	//quitChan      chan bool
-	terminated  bool
-	initialized bool
+	terminated    bool
+	initialized   bool
 }
 
+// Init initializes the underlying MySQL database connections for the
+// Migrator instance.
 func (m *Migrator) Init() error {
 	tag := "Migrator.Init(): "
 
@@ -97,6 +98,8 @@ func (m *Migrator) Init() error {
 	return nil
 }
 
+// Run spins off a goroutine with a running migrator until the corresponding
+// Quit() method is called.
 func (m *Migrator) Run() error {
 	tag := "Migrator.Run(): "
 
@@ -158,6 +161,8 @@ func (m *Migrator) Run() error {
 	return nil
 }
 
+// Close forcibly closes the database connections for the Migrator instance
+// and marks it as being uninitialized.
 func (m *Migrator) Close() {
 	tag := "Migrator.Close(): "
 
@@ -174,6 +179,8 @@ func (m *Migrator) Close() {
 	m.initialized = false
 }
 
+// Quit is the method which should be used as the "preferred method" for
+// terminating a Migrator instance.
 func (m *Migrator) Quit() error {
 	tag := "Migrator.Quit(): "
 
@@ -183,7 +190,6 @@ func (m *Migrator) Quit() error {
 
 	log.Printf(tag + "Sending quit signal")
 
-	//m.quitChan <- true
 	m.terminated = true
 
 	return nil

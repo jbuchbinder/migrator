@@ -12,6 +12,9 @@ func init() {
 	ExtractorMap["sequential"] = ExtractorSequential
 }
 
+// ExtractorSequential is an Extractor instance which uses the primary key
+// sequence to determine which rows should be extracted from the source
+// database table.
 var ExtractorSequential = func(db *sql.DB, dbName, tableName string, ts TrackingStatus, params Parameters) (bool, []SqlUntypedRow, TrackingStatus, error) {
 	tag := fmt.Sprintf("ExtractorSequential[%s.%s]: ", dbName, tableName)
 

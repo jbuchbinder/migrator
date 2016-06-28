@@ -26,6 +26,7 @@ func (nt NullTime) Value() (driver.Value, error) {
 	return nt.Time, nil
 }
 
+// Unix exposes the underlying Unix() call of the wrapped time.Time structure.
 func (nt NullTime) Unix() int64 {
 	if nt.Valid {
 		return nt.Time.Unix()
@@ -33,6 +34,7 @@ func (nt NullTime) Unix() int64 {
 	return 0
 }
 
+// MarshalJSON implements the json.Marshaler interface for encoding/json.
 func (nt NullTime) MarshalJSON() ([]byte, error) {
 	if nt.Valid {
 		return nt.Time.MarshalJSON()
@@ -40,6 +42,7 @@ func (nt NullTime) MarshalJSON() ([]byte, error) {
 	return []byte("null"), nil
 }
 
+// UnmarshalJSON implements the json.Unmarshaler interface for encoding/json.
 func (nt *NullTime) UnmarshalJSON(data []byte) (err error) {
 	if data == nil || len(data) < 3 {
 		*nt = NullTime{Valid: false}
@@ -51,10 +54,12 @@ func (nt *NullTime) UnmarshalJSON(data []byte) (err error) {
 	return
 }
 
+// NullTimeNow creates a new NullTime instance representing the current time.
 func NullTimeNow() NullTime {
 	return NullTime{time.Now(), true}
 }
 
+// NullTimeFromTime creates a new NullTime instance with the specified time.
 func NullTimeFromTime(t time.Time) NullTime {
 	return NullTime{t, true}
 }

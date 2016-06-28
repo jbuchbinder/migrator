@@ -9,13 +9,13 @@ import (
 )
 
 var (
-	ConfigFile = flag.String("config-file", "migrator.yml", "Configuration file (YAML)")
+	configFile = flag.String("config-file", "migrator.yml", "Configuration file (YAML)")
 )
 
 func main() {
 	flag.Parse()
 
-	config, err := LoadConfigWithDefaults(*ConfigFile)
+	config, err := LoadConfigWithDefaults(*configFile)
 	if err != nil {
 		panic(err)
 	}

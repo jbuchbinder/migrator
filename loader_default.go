@@ -5,7 +5,7 @@ import (
 	"log"
 )
 
-// DefaultLoader
+// DefaultLoader represents a default Loader instance.
 var DefaultLoader = func(db *sql.DB, tables []TableData, params Parameters) error {
 	var err error
 

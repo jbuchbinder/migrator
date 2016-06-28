@@ -9,6 +9,8 @@ var (
 	Config *MigratorConfig
 )
 
+// MigratorConfig defines the basic structure which is deserialized from the
+// migrator YAML configuration file.
 type MigratorConfig struct {
 	Debug             bool         `yaml:"debug"`
 	Port              int          `yaml:"port"`
@@ -21,6 +23,7 @@ type MigratorConfig struct {
 	Timeout int `yaml:"timeout"`
 }
 
+// Migrations represents a single migration coniguration instance.
 type Migrations struct {
 	Source struct {
 		Dsn   string `yaml:"dsn"`
@@ -33,6 +36,8 @@ type Migrations struct {
 	Extractor string
 }
 
+// SetDefaults creates a series of reasonable default values for the current
+// MigratorConfig instance.
 func (c *MigratorConfig) SetDefaults() {
 	c.Debug = false
 	c.Port = 3040
@@ -40,6 +45,8 @@ func (c *MigratorConfig) SetDefaults() {
 	c.Timeout = 0
 }
 
+// LoadConfigWithDefaults loads a YAML configuration file representing a
+// MigratorConfig structure.
 func LoadConfigWithDefaults(configPath string) (*MigratorConfig, error) {
 	c := &MigratorConfig{}
 	c.SetDefaults()
