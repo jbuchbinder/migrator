@@ -8,9 +8,10 @@ ETL / data migrator.
 
 ## Parameters
 
-| Parameter           | Type    | Default Value | Description                                                         |
-| ------------------- | ------- | ------------- | ------------------------------------------------------------------- |
-| ``BatchSize``       | integer | 1000          | Extractor: Number of rows polled from the source database at a time |
-| ``InsertBatchSize`` | integer | 100           | Loader: Number of rows inserted per statement                       |
-| ``Debug``           | bool    | false         | Show additional debugging information                               |
+| Parameter            | Type    | Default Value | Description                                                         |
+| -------------------- | ------- | ------------- | ------------------------------------------------------------------- |
+| ``BatchSize``        | integer | 1000          | Extractor: Number of rows polled from the source database at a time |
+| ``Debug``            | bool    | false         | Show additional debugging information                               |
+| ``InsertBatchSize``  | integer | 100           | Loader: Number of rows inserted per statement                       |
+| ``SleepBetweenRuns`` | integer | 5             | Migrator: Seconds to sleep when no data has been found              |
 

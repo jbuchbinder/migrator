@@ -107,6 +107,8 @@ func (m *Migrator) Run() error {
 		return errors.New(tag + "Not initialized")
 	}
 
+	delay := paramInt(params, "SleepBetweenRuns", 5)
+
 	go func() {
 		// Actual run
 		ts, err := GetTrackingStatus(m.destinationDb, m.SourceDsn.DBName, m.SourceTable)
@@ -143,8 +145,8 @@ func (m *Migrator) Run() error {
 			ts = newTs
 
 			if !more {
-				log.Printf(tag + "No more rows detected to process, sleeping for 5 sec")
-				time.Sleep(time.Second * 5)
+				log.Printf(tag+"No more rows detected to process, sleeping for %d sec", delay)
+				time.Sleep(time.Second * time.Duration(delay))
 
 				ts, err = GetTrackingStatus(m.destinationDb, m.SourceDsn.DBName, m.SourceTable)
 				if err != nil {

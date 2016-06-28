@@ -3,6 +3,7 @@ package migrator
 import (
 	"database/sql"
 	"log"
+	"time"
 )
 
 // DefaultLoader represents a default Loader instance.
@@ -14,6 +15,7 @@ var DefaultLoader = func(db *sql.DB, tables []TableData, params Parameters) erro
 
 	for _, table := range tables {
 		tag := "DefaultLoader(" + table.DbName + "." + table.TableName + "): "
+		tsStart := time.Now()
 
 		log.Printf(tag+"Beginning transaction, InsertBatchSize == %d", size)
 		tx, err := db.Begin()
@@ -30,6 +32,8 @@ var DefaultLoader = func(db *sql.DB, tables []TableData, params Parameters) erro
 			}
 			return err
 		}
+
+		log.Printf(tag+"Duration to insert %d rows: %s", len(table.Data), time.Since(tsStart).String())
 
 		log.Printf(tag + "Committing transaction")
 		err = tx.Commit()

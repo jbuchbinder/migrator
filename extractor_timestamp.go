@@ -26,6 +26,8 @@ var ExtractorTimestamp = func(db *sql.DB, dbName, tableName string, ts TrackingS
 	batchSize := paramInt(params, "BatchSize", DefaultBatchSize)
 	debug := paramBool(params, "Debug", false)
 
+	tsStart := time.Now()
+
 	rows, err := db.Query("SELECT * FROM `"+tableName+"` WHERE `"+ts.ColumnName+"` > ? LIMIT ?", ts.TimestampPosition, batchSize)
 	if err != nil {
 		return false, data, ts, err
@@ -60,6 +62,15 @@ var ExtractorTimestamp = func(db *sql.DB, dbName, tableName string, ts TrackingS
 		}
 		data = append(data, rowData)
 		maxStamp = timemax(maxStamp, rowData[ts.ColumnName].(time.Time))
+	}
+
+	log.Printf(tag+"Duration to extract %d rows: %s", dataCount, time.Since(tsStart).String())
+
+	if dataCount == 0 {
+		if debug {
+			log.Printf(tag+"Batch size %d, row count %d; indicating no more data", batchSize, dataCount)
+		}
+		return false, data, ts, nil
 	}
 
 	if dataCount < batchSize {
