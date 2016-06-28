@@ -124,7 +124,7 @@ func (m Migrator) Run() error {
 					log.Printf(tag + "Extractor: " + err.Error())
 				}
 				log.Printf(tag+"Extracted %d rows", len(rows))
-				err = m.Loader(m.destinationDb, m.DestinationDsn.DBName, m.DestinationTable, m.Transformer(rows, m.Parameters), m.Parameters)
+				err = m.Loader(m.destinationDb, m.Transformer(m.DestinationDsn.DBName, m.DestinationTable, rows, m.Parameters), m.Parameters)
 				if err != nil {
 					log.Printf(tag + "Loader: " + err.Error())
 				}

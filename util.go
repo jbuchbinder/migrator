@@ -1,5 +1,9 @@
 package migrator
 
+import (
+	"time"
+)
+
 func intmax(a, b int) int {
 	if a > b {
 		return a
@@ -23,6 +27,20 @@ func int64max(a, b int64) int64 {
 
 func int64min(a, b int64) int64 {
 	if a < b {
+		return a
+	}
+	return b
+}
+
+func timemax(a, b time.Time) time.Time {
+	if a.Unix() > b.Unix() {
+		return a
+	}
+	return b
+}
+
+func timemin(a, b time.Time) time.Time {
+	if a.Unix() < b.Unix() {
 		return a
 	}
 	return b

@@ -56,3 +56,8 @@ func SetTrackingStatusSequential(db *sql.DB, sourceDatabase, sourceTable string,
 	_, err := db.Exec("UPDATE `"+TrackingTableName+"` SET sequentialPosition = ?, lastRun = ? WHERE sourceDatabase = ? AND sourceTable = ?", seq, time.Now(), sourceDatabase, sourceTable)
 	return err
 }
+
+func SetTrackingStatusTimestamp(db *sql.DB, sourceDatabase, sourceTable string, stamp time.Time) error {
+	_, err := db.Exec("UPDATE `"+TrackingTableName+"` SET timestampPosition = ?, lastRun = ? WHERE sourceDatabase = ? AND sourceTable = ?", stamp, time.Now(), sourceDatabase, sourceTable)
+	return err
+}
