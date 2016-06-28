@@ -5,9 +5,15 @@ import (
 )
 
 var (
-	DefaultBatchSize  = 1000
+	// DefaultBatchSize represents the default size of extracted batches
+	DefaultBatchSize = 1000
+	// TrackingTableName represents the name of the database table used
+	// to track TrackingStatus instances, and exists within the target
+	// database.
 	TrackingTableName = "EtlPosition"
-	ExtractorMap      = make(map[string]Extractor)
+	// ExtractorMap is a map of Extractor functions which can be used
+	// to instantiate an Extractor based only on a string.
+	ExtractorMap = make(map[string]Extractor)
 )
 
 // SqlUntypedRow represents a single row of SQL data which is not strongly
@@ -15,6 +21,9 @@ var (
 // structures to represent tables.
 type SqlUntypedRow map[string]interface{}
 
+// Parameters represents a series of untyped parameters which are passed to
+// Extractors, Transformers, and Loaders. All stages of the ETL process
+// receive the same parameters.
 type Parameters map[string]interface{}
 
 // TableData represents identifying information and data for a table.
