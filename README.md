@@ -15,3 +15,16 @@ ETL / data migrator.
 | ``InsertBatchSize``  | integer | 100           | Loader: Number of rows inserted per statement                       |
 | ``SleepBetweenRuns`` | integer | 5             | Migrator: Seconds to sleep when no data has been found              |
 
+## Tracking Table
+
+```
+CREATE TABLE `Tracking` (
+	sourceDatabase		VARCHAR(100) DEFAULT '',
+	sourceTable		VARCHAR(100) DEFAULT '',
+	columnName		VARCHAR(100) DEFAULT '',
+	sequentialPosition	BIGINT DEFAULT 0,
+	timestampPosition	TIMESTAMP NULL DEFAULT NULL,
+	lastRun			TIMESTAMP NULL DEFAULT NULL
+);
+```
+
