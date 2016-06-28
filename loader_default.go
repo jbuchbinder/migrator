@@ -23,11 +23,12 @@ var DefaultLoader = func(db *sql.DB, tables []TableData, params Parameters) erro
 		}
 		err = BatchedInsert(tx, table.TableName, table.Data, size)
 		if err != nil {
-			err = tx.Rollback()
-			if err != nil {
-				log.Printf(tag + "Error during rollback: " + err.Error())
-				return err
+			log.Printf(tag + "Rolling back transaction")
+			err2 := tx.Rollback()
+			if err2 != nil {
+				log.Printf(tag + "Error during rollback: " + err2.Error())
 			}
+			return err
 		}
 
 		log.Printf(tag + "Committing transaction")

@@ -105,6 +105,12 @@ func (m *Migrator) Run() error {
 	}
 
 	go func() {
+		// Actual run
+		ts, err := GetTrackingStatus(m.destinationDb, m.SourceDsn.DBName, m.SourceTable)
+		if err != nil {
+			log.Printf(tag + "GetTrackingStatus: " + err.Error())
+			return
+		}
 		log.Printf(tag + "Entering loop")
 		for {
 			if m.terminated {
@@ -112,14 +118,9 @@ func (m *Migrator) Run() error {
 				m.Close()
 				return
 			}
-			// Actual run
-			ts, err := GetTrackingStatus(m.destinationDb, m.SourceDsn.DBName, m.SourceTable)
-			if err != nil {
-				log.Printf(tag + "GetTrackingStatus: " + err.Error())
-				continue
-			}
+			log.Printf(tag+"TrackingStatus: %s", ts.String())
 
-			more, rows, err := m.Extractor(m.sourceDb, m.SourceDsn.DBName, m.SourceTable, ts, m.Parameters)
+			more, rows, newTs, err := m.Extractor(m.sourceDb, m.SourceDsn.DBName, m.SourceTable, ts, m.Parameters)
 			if err != nil {
 				log.Printf(tag + "Extractor: " + err.Error())
 			}
@@ -127,10 +128,26 @@ func (m *Migrator) Run() error {
 			err = m.Loader(m.destinationDb, m.Transformer(m.DestinationDsn.DBName, m.DestinationTable, rows, m.Parameters), m.Parameters)
 			if err != nil {
 				log.Printf(tag + "Loader: " + err.Error())
+
 			}
+
+			log.Printf(tag + "Tracking: Updating table")
+			err = SerializeTrackingStatus(m.destinationDb, newTs)
+			if err != nil {
+				log.Printf(tag + "Tracking: " + err.Error())
+			}
+
+			ts = newTs
+
 			if !more {
 				log.Printf(tag + "No more rows detected to process, sleeping for 5 sec")
 				time.Sleep(time.Second * 5)
+
+				ts, err = GetTrackingStatus(m.destinationDb, m.SourceDsn.DBName, m.SourceTable)
+				if err != nil {
+					log.Printf(tag + "GetTrackingStatus: " + err.Error())
+					return
+				}
 			}
 
 			// Sleep for 150ms to avoid pileups

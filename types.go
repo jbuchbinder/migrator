@@ -25,7 +25,7 @@ type TableData struct {
 }
 
 // Extractor is a callback function type
-type Extractor func(*sql.DB, string, string, TrackingStatus, Parameters) (bool, []SqlUntypedRow, error)
+type Extractor func(*sql.DB, string, string, TrackingStatus, Parameters) (bool, []SqlUntypedRow, TrackingStatus, error)
 
 // Transformer is a callback function type which transforms an array of untyped
 // information into another array of untyped information. This is used for the

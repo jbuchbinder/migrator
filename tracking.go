@@ -3,6 +3,8 @@ package migrator
 import (
 	"database/sql"
 	"errors"
+	"fmt"
+	"log"
 	"time"
 )
 
@@ -16,6 +18,15 @@ type TrackingStatus struct {
 	SequentialPosition int64    `db:"sequentialPosition"`
 	TimestampPosition  NullTime `db:"timestampPosition"`
 	LastRun            NullTime `db:"lastRun"`
+}
+
+func (t TrackingStatus) String() string {
+	out := "TrackingStatus[" + t.SourceDatabase + "." + t.SourceTable + "]: "
+	if t.TimestampPosition.Valid {
+		return out + t.TimestampPosition.Time.String()
+	} else {
+		return out + fmt.Sprintf("%d", t.SequentialPosition)
+	}
 }
 
 func SerializeNewTrackingStatus(tt TrackingStatus) error {
@@ -50,6 +61,12 @@ func GetTrackingStatusTimestamp(db *sql.DB, sourceDatabase, sourceTable string) 
 	}
 	return seq, err
 
+}
+
+func SerializeTrackingStatus(db *sql.DB, ts TrackingStatus) error {
+	log.Printf("SerializeTrackingStatus(): %s", ts)
+	_, err := db.Exec("UPDATE `"+TrackingTableName+"` SET sequentialPosition = ?, timestampPosition = ?, lastRun = ? WHERE sourceDatabase = ? AND sourceTable = ?", ts.SequentialPosition, ts.TimestampPosition, ts.LastRun, ts.SourceDatabase, ts.SourceTable)
+	return err
 }
 
 func SetTrackingStatusSequential(db *sql.DB, sourceDatabase, sourceTable string, seq int64) error {

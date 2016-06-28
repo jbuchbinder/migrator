@@ -11,7 +11,7 @@ func init() {
 	ExtractorMap["timestamp"] = ExtractorTimestamp
 }
 
-var ExtractorTimestamp = func(db *sql.DB, dbName, tableName string, ts TrackingStatus, params Parameters) (bool, []SqlUntypedRow, error) {
+var ExtractorTimestamp = func(db *sql.DB, dbName, tableName string, ts TrackingStatus, params Parameters) (bool, []SqlUntypedRow, TrackingStatus, error) {
 	tag := fmt.Sprintf("ExtractorTimestamp[%s.%s]: ", dbName, tableName)
 
 	moreData := false
@@ -26,12 +26,12 @@ var ExtractorTimestamp = func(db *sql.DB, dbName, tableName string, ts TrackingS
 
 	rows, err := db.Query("SELECT * FROM `"+tableName+"` WHERE `"+ts.ColumnName+"` > ? LIMIT ?", ts.TimestampPosition, batchSize)
 	if err != nil {
-		return false, data, err
+		return false, data, ts, err
 	}
 	defer rows.Close()
 	cols, err := rows.Columns()
 	if err != nil {
-		return false, data, err
+		return false, data, ts, err
 	}
 	if debug {
 		log.Printf(tag+"Columns %v", cols)
@@ -48,7 +48,7 @@ var ExtractorTimestamp = func(db *sql.DB, dbName, tableName string, ts TrackingS
 		err = rows.Scan(scanArgs...)
 		if err != nil {
 			log.Printf(tag + "Scan: " + err.Error())
-			return false, data, err
+			return false, data, ts, err
 		}
 
 		// De-reference fields
@@ -70,6 +70,16 @@ var ExtractorTimestamp = func(db *sql.DB, dbName, tableName string, ts TrackingS
 
 	log.Printf(tag+"%s high timestamp value %#v", ts.ColumnName, maxStamp)
 	err = SetTrackingStatusTimestamp(ts.Db, dbName, tableName, maxStamp)
+	// Copy old object ...
+	newTs := &TrackingStatus{
+		Db:             ts.Db,
+		SourceDatabase: ts.SourceDatabase,
+		SourceTable:    ts.SourceTable,
+		ColumnName:     ts.ColumnName,
+		// ... with updates
+		TimestampPosition: NullTimeFromTime(maxStamp),
+		LastRun:           NullTimeNow(),
+	}
 
-	return moreData, data, err
+	return moreData, data, *newTs, err
 }
