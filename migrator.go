@@ -107,7 +107,7 @@ func (m *Migrator) Run() error {
 		return errors.New(tag + "Not initialized")
 	}
 
-	delay := paramInt(params, "SleepBetweenRuns", 5)
+	delay := paramInt(m.Parameters, "SleepBetweenRuns", 5)
 
 	go func() {
 		// Actual run
