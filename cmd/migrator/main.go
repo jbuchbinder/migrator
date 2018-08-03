@@ -38,7 +38,7 @@ func main() {
 			SourceTable:      config.Migrations[i].Source.Table,
 			DestinationDsn:   dest,
 			DestinationTable: config.Migrations[i].Target.Table,
-			Parameters: migrator.Parameters{
+			Parameters: &migrator.Parameters{
 				"BatchSize":       config.Parameters.BatchSize,
 				"InsertBatchSize": config.Parameters.InsertBatchSize,
 			},

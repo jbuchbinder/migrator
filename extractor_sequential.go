@@ -15,7 +15,7 @@ func init() {
 // ExtractorSequential is an Extractor instance which uses the primary key
 // sequence to determine which rows should be extracted from the source
 // database table.
-var ExtractorSequential = func(db *sql.DB, dbName, tableName string, ts TrackingStatus, params Parameters) (bool, []SqlUntypedRow, TrackingStatus, error) {
+var ExtractorSequential = func(db *sql.DB, dbName, tableName string, ts TrackingStatus, params *Parameters) (bool, []SqlUntypedRow, TrackingStatus, error) {
 	tag := fmt.Sprintf("ExtractorSequential[%s.%s]: ", dbName, tableName)
 
 	moreData := false
@@ -26,8 +26,8 @@ var ExtractorSequential = func(db *sql.DB, dbName, tableName string, ts Tracking
 	minSeq := int64(math.MaxInt64)
 	var maxSeq int64
 
-	batchSize := paramInt(params, "BatchSize", DefaultBatchSize)
-	debug := paramBool(params, "Debug", false)
+	batchSize := paramInt(*params, "BatchSize", DefaultBatchSize)
+	debug := paramBool(*params, "Debug", false)
 
 	tsStart := time.Now()
 
@@ -100,6 +100,8 @@ var ExtractorSequential = func(db *sql.DB, dbName, tableName string, ts Tracking
 		SequentialPosition: maxSeq,
 		LastRun:            NullTimeNow(),
 	}
+
+	(*params)["METHOD"] = "INSERT"
 
 	return moreData, data, *newTs, nil
 }

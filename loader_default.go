@@ -7,11 +7,11 @@ import (
 )
 
 // DefaultLoader represents a default Loader instance.
-var DefaultLoader = func(db *sql.DB, tables []TableData, params Parameters) error {
+var DefaultLoader = func(db *sql.DB, tables []TableData, params *Parameters) error {
 	var err error
 
-	size := paramInt(params, "InsertBatchSize", 100)
-	//debug := paramBool(params, "Debug", false)
+	size := paramInt(*params, "InsertBatchSize", 100)
+	//debug := paramBool(*params, "Debug", false)
 
 	for _, table := range tables {
 		tag := "DefaultLoader(" + table.DbName + "." + table.TableName + "): "
@@ -23,7 +23,26 @@ var DefaultLoader = func(db *sql.DB, tables []TableData, params Parameters) erro
 			log.Printf(tag + "Transaction start: " + err.Error())
 			return err
 		}
-		err = BatchedInsert(tx, table.TableName, table.Data, size)
+		if method, ok := (*params)["METHOD"].(string); ok {
+			switch method {
+			case "REPLACE":
+				log.Printf(tag + "Method REPLACE")
+				err = BatchedReplace(tx, table.TableName, table.Data, size)
+
+			case "INSERT":
+				log.Printf(tag + "Method INSERT")
+				err = BatchedInsert(tx, table.TableName, table.Data, size)
+				break
+			default:
+				log.Printf(tag+"Unknown method '%s' present, falling back on INSERT", method)
+				err = BatchedInsert(tx, table.TableName, table.Data, size)
+				break
+			}
+		} else {
+			// Fall back to INSERT
+			log.Printf(tag + "No method present, falling back on INSERT")
+			err = BatchedInsert(tx, table.TableName, table.Data, size)
+		}
 		if err != nil {
 			log.Printf(tag + "Rolling back transaction")
 			err2 := tx.Rollback()

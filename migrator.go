@@ -32,7 +32,7 @@ type Migrator struct {
 	// Parameters are a map of arbitrary values / structures which are
 	// passed to all of the constituent functions ( Extractor, Transformer,
 	// Loader ) in the Migrator.
-	Parameters Parameters
+	Parameters *Parameters
 
 	// Extractor represents the Extractor callback.
 	Extractor Extractor
@@ -107,7 +107,7 @@ func (m *Migrator) Run() error {
 		return errors.New(tag + "Not initialized")
 	}
 
-	delay := paramInt(m.Parameters, "SleepBetweenRuns", 5)
+	delay := paramInt(*m.Parameters, "SleepBetweenRuns", 5)
 
 	go func() {
 		// Actual run

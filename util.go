@@ -46,7 +46,7 @@ func timemin(a, b time.Time) time.Time {
 	return b
 }
 
-func paramInt(params map[string]interface{}, key string, defaultValue int) int {
+func paramInt(params Parameters, key string, defaultValue int) int {
 	out := defaultValue
 	if _, ok := params[key]; ok {
 		out, ok = params[key].(int)
@@ -58,7 +58,7 @@ func paramInt(params map[string]interface{}, key string, defaultValue int) int {
 	return defaultValue
 }
 
-func paramBool(params map[string]interface{}, key string, defaultValue bool) bool {
+func paramBool(params Parameters, key string, defaultValue bool) bool {
 	out := defaultValue
 	if _, ok := params[key]; ok {
 		out, ok = params[key].(bool)
