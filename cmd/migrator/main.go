@@ -2,10 +2,11 @@ package main
 
 import (
 	"flag"
-	"github.com/go-sql-driver/mysql"
-	"github.com/jbuchbinder/migrator"
 	"log"
 	"time"
+
+	"github.com/go-sql-driver/mysql"
+	"github.com/jbuchbinder/migrator"
 )
 
 var (

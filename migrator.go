@@ -3,9 +3,10 @@ package migrator
 import (
 	"database/sql"
 	"errors"
-	"github.com/go-sql-driver/mysql"
 	"log"
 	"time"
+
+	"github.com/go-sql-driver/mysql"
 )
 
 // Migrator represents an object which encompasses an entire end-to-end
