@@ -13,14 +13,14 @@ func init() {
 
 // ExtractorTimestamp is an Extractor instance which uses a DATETIME/TIMESTAMP
 // field to determine which rows to pull from the source database table.
-var ExtractorTimestamp = func(db *sql.DB, dbName, tableName string, ts TrackingStatus, params *Parameters) (bool, []SqlUntypedRow, TrackingStatus, error) {
+var ExtractorTimestamp = func(db *sql.DB, dbName, tableName string, ts TrackingStatus, params *Parameters) (bool, []SQLRow, TrackingStatus, error) {
 	tag := fmt.Sprintf("ExtractorTimestamp[%s.%s]: ", dbName, tableName)
 
 	moreData := false
 
 	log.Printf(tag+"Beginning run with params %#v", params)
 
-	data := make([]SqlUntypedRow, 0)
+	data := make([]SQLRow, 0)
 	var maxStamp time.Time
 
 	batchSize := paramInt(*params, "BatchSize", DefaultBatchSize)
@@ -56,12 +56,13 @@ var ExtractorTimestamp = func(db *sql.DB, dbName, tableName string, ts TrackingS
 		}
 
 		// De-reference fields
-		rowData := make(SqlUntypedRow, len(cols))
+		rowData := SQLRow{}
+		rowData.Data = make(SQLUntypedRow, len(cols))
 		for i := range cols {
-			rowData[cols[i]] = values[i]
+			rowData.Data[cols[i]] = values[i]
 		}
 		data = append(data, rowData)
-		maxStamp = timemax(maxStamp, rowData[ts.ColumnName].(time.Time))
+		maxStamp = timemax(maxStamp, rowData.Data[ts.ColumnName].(time.Time))
 	}
 
 	log.Printf(tag+"Duration to extract %d rows: %s", dataCount, time.Since(tsStart).String())

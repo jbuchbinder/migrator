@@ -15,14 +15,14 @@ func init() {
 // ExtractorSequential is an Extractor instance which uses the primary key
 // sequence to determine which rows should be extracted from the source
 // database table.
-var ExtractorSequential = func(db *sql.DB, dbName, tableName string, ts TrackingStatus, params *Parameters) (bool, []SqlUntypedRow, TrackingStatus, error) {
+var ExtractorSequential = func(db *sql.DB, dbName, tableName string, ts TrackingStatus, params *Parameters) (bool, []SQLRow, TrackingStatus, error) {
 	tag := fmt.Sprintf("ExtractorSequential[%s.%s]: ", dbName, tableName)
 
 	moreData := false
 
 	log.Printf(tag+"Beginning run with params %#v", params)
 
-	data := make([]SqlUntypedRow, 0)
+	data := make([]SQLRow, 0)
 	minSeq := int64(math.MaxInt64)
 	var maxSeq int64
 
@@ -60,13 +60,19 @@ var ExtractorSequential = func(db *sql.DB, dbName, tableName string, ts Tracking
 		}
 
 		// De-reference fields
-		rowData := make(SqlUntypedRow, len(cols))
+		rowData := SQLRow{}
+		if sequentialReplace {
+			rowData.Method = "REPLACE"
+		} else {
+			rowData.Method = "INSERT"
+		}
+		rowData.Data = make(SQLUntypedRow, len(cols))
 		for i := range cols {
-			rowData[cols[i]] = values[i]
+			rowData.Data[cols[i]] = values[i]
 		}
 		data = append(data, rowData)
-		minSeq = int64min(minSeq, rowData[ts.ColumnName].(int64))
-		maxSeq = int64max(maxSeq, rowData[ts.ColumnName].(int64))
+		minSeq = int64min(minSeq, rowData.Data[ts.ColumnName].(int64))
+		maxSeq = int64max(maxSeq, rowData.Data[ts.ColumnName].(int64))
 	}
 
 	log.Printf(tag+"Duration to extract %d rows: %s", dataCount, time.Since(tsStart).String())

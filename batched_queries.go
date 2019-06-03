@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"database/sql"
 	"errors"
+	"log"
 	"math"
 	"reflect"
 )
@@ -11,21 +12,67 @@ import (
 // BatchedInsert takes an array of SQL data rows and creates a series of
 // batched inserts to insert the data into an existing sql.Tx (transaction)
 // object.
-func BatchedInsert(tx *sql.Tx, table string, data []SqlUntypedRow, size int) error {
+func BatchedInsert(tx *sql.Tx, table string, data []SQLUntypedRow, size int) error {
 	return BatchedQuery(tx, table, data, size, "INSERT")
 }
 
 // BatchedReplace takes an array of SQL data rows and creates a series of
 // batched replaces to replace the data into an existing sql.Tx (transaction)
 // object.
-func BatchedReplace(tx *sql.Tx, table string, data []SqlUntypedRow, size int) error {
+func BatchedReplace(tx *sql.Tx, table string, data []SQLUntypedRow, size int) error {
 	return BatchedQuery(tx, table, data, size, "REPLACE")
+}
+
+// BatchedRemove takes an array of SQL data rows and creates a series of
+// DELETE FROM statements to remove the data in an existing sql.Tx (transaction)
+// object.
+func BatchedRemove(tx *sql.Tx, table string, data []SQLUntypedRow, size int) error {
+	// Pull column names from first row
+	if len(data) < 1 {
+		return errors.New("BatchedRemove(): no data presented")
+	}
+	keys := reflect.ValueOf(data[0]).MapKeys()
+	if len(keys) < 1 {
+		return errors.New("BatchedRemove(): no columns presented")
+	}
+
+	if size < 1 {
+		size = 1
+	}
+
+	for i := 0; i < len(data); i++ {
+		params := make([]interface{}, 0)
+
+		// Header is always the same
+		prepared := new(bytes.Buffer)
+		prepared.WriteString("DELETE FROM")
+		prepared.WriteString(" `" + table + "` WHERE ")
+
+		for iter, k := range keys {
+			if iter != 0 {
+				prepared.WriteString(" AND ")
+			}
+			prepared.WriteString("`" + k.String() + "` = ?")
+			params = append(params, data[i][keys[iter].String()])
+		}
+		prepared.WriteString(";")
+
+		log.Printf("BatchedRemove(): Prepared remove: %s", prepared.String())
+
+		// Attempt to execute
+		_, err := tx.Exec(prepared.String(), params...)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // BatchedQuery takes an array of SQL data rows and creates a series of
 // batched queries to insert/replace the data into an existing sql.Tx
 // (transaction) object.
-func BatchedQuery(tx *sql.Tx, table string, data []SqlUntypedRow, size int, op string) error {
+func BatchedQuery(tx *sql.Tx, table string, data []SQLUntypedRow, size int, op string) error {
 	// Pull column names from first row
 	if len(data) < 1 {
 		return errors.New("BatchedQuery(): no data presented")

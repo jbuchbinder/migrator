@@ -1,7 +1,7 @@
 package migrator
 
 // DefaultTransformer by default does nothing -- the data is not transformed.
-var DefaultTransformer = func(dbName, tableName string, data []SqlUntypedRow, params *Parameters) []TableData {
+var DefaultTransformer = func(dbName, tableName string, data []SQLRow, params *Parameters) []TableData {
 	method, ok := (*params)["METHOD"].(string)
 	if !ok {
 		method = ""

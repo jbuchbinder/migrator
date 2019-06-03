@@ -22,7 +22,13 @@ var (
 // SqlUntypedRow represents a single row of SQL data which is not strongly
 // typed to a structure. This obviates the need to create Golang-level language
 // structures to represent tables.
-type SqlUntypedRow map[string]interface{}
+type SQLUntypedRow map[string]interface{}
+
+// SqlRow represents a single row of SQL data with an action associated with it
+type SQLRow struct {
+	Data   SQLUntypedRow
+	Method string
+}
 
 // Parameters represents a series of untyped parameters which are passed to
 // Extractors, Transformers, and Loaders. All stages of the ETL process
@@ -33,17 +39,17 @@ type Parameters map[string]interface{}
 type TableData struct {
 	DbName    string
 	TableName string
-	Data      []SqlUntypedRow
+	Data      []SQLRow
 	Method    string // only used with loader, specifies INSERT/REPLACE
 }
 
 // Extractor is a callback function type
-type Extractor func(*sql.DB, string, string, TrackingStatus, *Parameters) (bool, []SqlUntypedRow, TrackingStatus, error)
+type Extractor func(*sql.DB, string, string, TrackingStatus, *Parameters) (bool, []SQLRow, TrackingStatus, error)
 
 // Transformer is a callback function type which transforms an array of untyped
 // information into another array of untyped information. This is used for the
 // "transform" step of the ETL process.
-type Transformer func(string, string, []SqlUntypedRow, *Parameters) []TableData
+type Transformer func(string, string, []SQLRow, *Parameters) []TableData
 
 // Loader is a callback function type
 type Loader func(*sql.DB, []TableData, *Parameters) error

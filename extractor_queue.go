@@ -15,14 +15,14 @@ func init() {
 // ExtractorQueue is an Extractor instance which uses a table which is
 // triggered by INSERT or UPDATE to notify the extractor that it needs
 // to replicate a row.
-var ExtractorQueue = func(db *sql.DB, dbName, tableName string, ts TrackingStatus, params *Parameters) (bool, []SqlUntypedRow, TrackingStatus, error) {
+var ExtractorQueue = func(db *sql.DB, dbName, tableName string, ts TrackingStatus, params *Parameters) (bool, []SQLRow, TrackingStatus, error) {
 	tag := fmt.Sprintf("ExtractorQueue[%s.%s]: ", dbName, tableName)
 
 	moreData := false
 
 	log.Printf(tag+"Beginning run with params %#v", params)
 
-	data := make([]SqlUntypedRow, 0)
+	data := make([]SQLRow, 0)
 	minSeq := int64(math.MaxInt64)
 	var maxSeq int64
 
@@ -80,13 +80,15 @@ var ExtractorQueue = func(db *sql.DB, dbName, tableName string, ts TrackingStatu
 			}
 
 			// De-reference fields
-			rowData := make(SqlUntypedRow, len(cols))
+			rowData := SQLRow{}
+			rowData.Method = "REPLACE"
+			rowData.Data = make(SQLUntypedRow, len(cols))
 			for i := range cols {
-				rowData[cols[i]] = values[i]
+				rowData.Data[cols[i]] = values[i]
 			}
 			data = append(data, rowData)
-			minSeq = int64min(minSeq, rowData[ts.ColumnName].(int64))
-			maxSeq = int64max(maxSeq, rowData[ts.ColumnName].(int64))
+			minSeq = int64min(minSeq, rowData.Data[ts.ColumnName].(int64))
+			maxSeq = int64max(maxSeq, rowData.Data[ts.ColumnName].(int64))
 		}
 		err = rq.Remove()
 		if err != nil {
