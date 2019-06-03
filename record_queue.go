@@ -17,6 +17,7 @@ type RecordQueue struct {
 	PrimaryKeyColumnValue string    `db:"pkValue"`
 	SequentialPosition    int64     `db:"sequentialPosition"`
 	TimestampUpdated      time.Time `db:"timestampPosition"`
+	Method                string    `db:"method"`
 }
 
 // String produces a human readable representation of a TrackingStatus object.

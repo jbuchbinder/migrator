@@ -31,7 +31,7 @@ var ExtractorQueue = func(db *sql.DB, dbName, tableName string, ts TrackingStatu
 
 	tsStart := time.Now()
 
-	rowsToProcess, err := db.Query("SELECT * FROM `"+RecordQueueTable+"` WHERE sourceDatabase = ? AND sourceTable = ? ORDER BY timestampUpdated LIMIT ?",
+	rowsToProcess, err := db.Query("SELECT * FROM `"+RecordQueueTable+"` WHERE sourceDatabase = ? AND sourceTable = ? AND method != 'REMOVE' ORDER BY timestampUpdated LIMIT ?",
 		dbName, tableName, DefaultBatchSize)
 	if err != nil {
 		log.Printf(tag+"Error extracting queue rows: %s", err.Error())
@@ -46,11 +46,13 @@ var ExtractorQueue = func(db *sql.DB, dbName, tableName string, ts TrackingStatu
 			&(rq.PrimaryKeyColumnName),
 			&(rq.PrimaryKeyColumnValue),
 			&(rq.TimestampUpdated),
+			&(rq.Method),
 		)
 		if err != nil {
 			log.Printf(tag + "Queue Scan: " + err.Error())
 			return false, data, ts, err
 		}
+
 		rows, err := db.Query("SELECT * FROM `"+tableName+"` WHERE `"+rq.PrimaryKeyColumnName+"` = ? LIMIT 1", rq.PrimaryKeyColumnValue)
 		if err != nil {
 			return false, data, ts, err
