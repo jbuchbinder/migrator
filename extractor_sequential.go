@@ -27,6 +27,7 @@ var ExtractorSequential = func(db *sql.DB, dbName, tableName string, ts Tracking
 	var maxSeq int64
 
 	batchSize := paramInt(*params, "BatchSize", DefaultBatchSize)
+	sequentialReplace := paramBool(*params, "SequentialReplace", false)
 	debug := paramBool(*params, "Debug", false)
 
 	tsStart := time.Now()
@@ -101,7 +102,11 @@ var ExtractorSequential = func(db *sql.DB, dbName, tableName string, ts Tracking
 		LastRun:            NullTimeNow(),
 	}
 
-	(*params)["METHOD"] = "INSERT"
+	if sequentialReplace {
+		(*params)["METHOD"] = "REPLACE"
+	} else {
+		(*params)["METHOD"] = "INSERT"
+	}
 
 	return moreData, data, *newTs, nil
 }

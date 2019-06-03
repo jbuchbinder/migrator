@@ -40,8 +40,9 @@ func main() {
 			DestinationDsn:   dest,
 			DestinationTable: config.Migrations[i].Target.Table,
 			Parameters: &migrator.Parameters{
-				"BatchSize":       config.Parameters.BatchSize,
-				"InsertBatchSize": config.Parameters.InsertBatchSize,
+				"BatchSize":         config.Parameters.BatchSize,
+				"InsertBatchSize":   config.Parameters.InsertBatchSize,
+				"SequentialReplace": config.Parameters.SequentialReplace,
 			},
 			Extractor:   migrator.ExtractorMap[config.Migrations[i].Extractor],
 			Transformer: migrator.DefaultTransformer,

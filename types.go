@@ -14,6 +14,9 @@ var (
 	// ExtractorMap is a map of Extractor functions which can be used
 	// to instantiate an Extractor based only on a string.
 	ExtractorMap = make(map[string]Extractor)
+	// RecordQueueTable is the table name for the non-update field
+	// capable entries.
+	RecordQueueTable = "MigratorRecordQueue"
 )
 
 // SqlUntypedRow represents a single row of SQL data which is not strongly

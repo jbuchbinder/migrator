@@ -14,8 +14,9 @@ type MigratorConfig struct {
 	Migrations        []Migrations `yaml:"migrations"`
 	TrackingTableName string       `yaml:"tracking-table"`
 	Parameters        struct {
-		BatchSize       int `yaml:"batch-size"`
-		InsertBatchSize int `yaml:"insert-batch-size"`
+		BatchSize         int  `yaml:"batch-size"`
+		InsertBatchSize   int  `yaml:"insert-batch-size"`
+		SequentialReplace bool `yaml:"sequential-replace"`
 	} `yaml:"parameters"`
 	Timeout int `yaml:"timeout"`
 }
