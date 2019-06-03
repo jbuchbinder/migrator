@@ -31,7 +31,8 @@ var ExtractorQueue = func(db *sql.DB, dbName, tableName string, ts TrackingStatu
 
 	tsStart := time.Now()
 
-	rowsToProcess, err := db.Query("SELECT * FROM `" + RecordQueueTable + "` WHERE sourceDatabase = ? AND sourceTable = ? LIMIT ?")
+	rowsToProcess, err := db.Query("SELECT * FROM `"+RecordQueueTable+"` WHERE sourceDatabase = ? AND sourceTable = ? ORDER BY timestampUpdated LIMIT ?",
+		dbName, tableName, DefaultBatchSize)
 	if err != nil {
 		log.Printf(tag+"Error extracting queue rows: %s", err.Error())
 		return false, data, ts, err
