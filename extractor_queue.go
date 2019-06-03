@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"math"
 	"time"
 )
 
@@ -23,8 +22,8 @@ var ExtractorQueue = func(db *sql.DB, dbName, tableName string, ts TrackingStatu
 	log.Printf(tag+"Beginning run with params %#v", params)
 
 	data := make([]SQLRow, 0)
-	minSeq := int64(math.MaxInt64)
-	var maxSeq int64
+	//minSeq := int64(math.MaxInt64)
+	//var maxSeq int64
 
 	batchSize := paramInt(*params, "BatchSize", DefaultBatchSize)
 	debug := paramBool(*params, "Debug", false)
@@ -51,6 +50,20 @@ var ExtractorQueue = func(db *sql.DB, dbName, tableName string, ts TrackingStatu
 		if err != nil {
 			log.Printf(tag + "Queue Scan: " + err.Error())
 			return false, data, ts, err
+		}
+
+		// Handle REMOVE -- since we can't actually scan a removed item
+		if rq.Method == "REMOVE" {
+			rowData := SQLRow{}
+			rowData.Method = "REMOVE"
+			rowData.Data = SQLUntypedRow{}
+			rowData.Data[rq.PrimaryKeyColumnName] = rq.PrimaryKeyColumnValue
+			data = append(data, rowData)
+			err = rq.Remove()
+			if err != nil {
+				return false, data, ts, err
+			}
+			continue
 		}
 
 		rows, err := db.Query("SELECT * FROM `"+tableName+"` WHERE `"+rq.PrimaryKeyColumnName+"` = ? LIMIT 1", rq.PrimaryKeyColumnValue)
@@ -87,8 +100,8 @@ var ExtractorQueue = func(db *sql.DB, dbName, tableName string, ts TrackingStatu
 				rowData.Data[cols[i]] = values[i]
 			}
 			data = append(data, rowData)
-			minSeq = int64min(minSeq, rowData.Data[ts.ColumnName].(int64))
-			maxSeq = int64max(maxSeq, rowData.Data[ts.ColumnName].(int64))
+			//minSeq = int64min(minSeq, rowData.Data[ts.ColumnName].(int64))
+			//maxSeq = int64max(maxSeq, rowData.Data[ts.ColumnName].(int64))
 		}
 		err = rq.Remove()
 		if err != nil {
@@ -117,7 +130,8 @@ var ExtractorQueue = func(db *sql.DB, dbName, tableName string, ts TrackingStatu
 		moreData = true
 	}
 
-	log.Printf(tag+"%s seq value range %d - %d", ts.ColumnName, minSeq, maxSeq)
+	//log.Printf(tag+"%s seq value range %d - %d", ts.ColumnName, minSeq, maxSeq)
+
 	// Manually copy old tracking object ...
 	newTs := &TrackingStatus{
 		Db:             ts.Db,
@@ -125,7 +139,7 @@ var ExtractorQueue = func(db *sql.DB, dbName, tableName string, ts TrackingStatu
 		SourceTable:    ts.SourceTable,
 		ColumnName:     ts.ColumnName,
 		// ... with updates
-		SequentialPosition: maxSeq,
+		SequentialPosition: ts.SequentialPosition,
 		LastRun:            NullTimeNow(),
 	}
 
