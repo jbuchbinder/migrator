@@ -1,0 +1,16 @@
+debug: true
+port: 3040
+tracking-table: EtlPosition
+migrations:
+  -
+    source:
+      dsn: migrator:migrator@/a
+      table: x
+    target:
+      dsn: migrator:migrator@/b
+      table: x
+    extractor: queue
+parameters:
+  batch-size: 10000
+  insert-batch-size: 1000
+timeout: 0
