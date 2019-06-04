@@ -30,7 +30,7 @@ var ExtractorQueue = func(db *sql.DB, dbName, tableName string, ts TrackingStatu
 
 	tsStart := time.Now()
 
-	rowsToProcess, err := db.Query("SELECT * FROM `"+RecordQueueTable+"` WHERE sourceDatabase = ? AND sourceTable = ? AND method != 'REMOVE' ORDER BY timestampUpdated LIMIT ?",
+	rowsToProcess, err := db.Query("SELECT * FROM `"+RecordQueueTable+"` WHERE sourceDatabase = ? AND sourceTable = ? ORDER BY timestampUpdated LIMIT ?",
 		dbName, tableName, DefaultBatchSize)
 	if err != nil {
 		log.Printf(tag+"Error extracting queue rows: %s", err.Error())
@@ -54,6 +54,9 @@ var ExtractorQueue = func(db *sql.DB, dbName, tableName string, ts TrackingStatu
 
 		// Handle REMOVE -- since we can't actually scan a removed item
 		if rq.Method == "REMOVE" {
+			if debug {
+				log.Printf(tag+"Found REMOVE -- processing : %#v", rq)
+			}
 			rowData := SQLRow{}
 			rowData.Method = "REMOVE"
 			rowData.Data = SQLUntypedRow{}
