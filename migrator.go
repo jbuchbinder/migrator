@@ -21,6 +21,11 @@ type Migrator struct {
 	// for the Extractor.
 	SourceTable string
 
+	// SourceKey is the key field which is used to determine position.
+	// This is only specified for the creation of the tracking
+	// table if necessary.
+	SourceKey string
+
 	// DestinationDsn represents the DSN (data source name) for the
 	// destination table. Format is:
 	// https://github.com/go-sql-driver/mysql#dsn-data-source-name
@@ -93,6 +98,34 @@ func (m *Migrator) Init() error {
 	}
 	m.destinationDb.SetMaxIdleConns(0)
 	m.destinationDb.SetMaxOpenConns(50)
+
+	// Attempt to make sure there is a tracking table and status entry
+
+	log.Printf(tag + "Ensuring that tracking table exists")
+	err = CreateTrackingTable(m.destinationDb)
+	if err != nil {
+		return err
+	}
+
+	log.Printf(tag+"Getting tracking table status for %s.%s", m.SourceDsn.DBName, m.SourceTable)
+	_, err = GetTrackingStatus(m.destinationDb, m.SourceDsn.DBName, m.SourceTable)
+	if err != nil {
+		tt := TrackingStatus{
+			Db:                 m.destinationDb,
+			SourceDatabase:     m.SourceDsn.DBName,
+			SourceTable:        m.SourceTable,
+			ColumnName:         m.SourceKey,
+			SequentialPosition: 0,
+			TimestampPosition:  NullTime{},
+			LastRun:            NullTimeNow(),
+		}
+		log.Printf(tag+"Creating tracking table entry, as none exists: %#v", tt)
+		err := SerializeNewTrackingStatus(tt)
+		if err != nil {
+			log.Printf(tag+"TrackingStatus: %#v", tt)
+			return err
+		}
+	}
 
 	m.initialized = true
 

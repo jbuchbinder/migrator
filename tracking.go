@@ -29,6 +29,21 @@ func (t TrackingStatus) String() string {
 	return out + fmt.Sprintf("%d", t.SequentialPosition)
 }
 
+// CreateTrackingTable attempts to create the tracking table for the specified
+// database connection. If the table already exists, this does nothing.
+func CreateTrackingTable(db *sql.DB) error {
+	_, err := db.Exec(`
+	CREATE TABLE IF NOT EXISTS ` + TrackingTableName + ` (
+		sourceDatabase		VARCHAR(100) DEFAULT '',
+		sourceTable		VARCHAR(100) DEFAULT '',
+		columnName		VARCHAR(100) DEFAULT '',
+		sequentialPosition	BIGINT DEFAULT 0,
+		timestampPosition	TIMESTAMP NULL DEFAULT NULL,
+		lastRun			TIMESTAMP NULL DEFAULT NULL
+	);`)
+	return err
+}
+
 // SerializeNewTrackingStatus serializes a TrackingStatus object to its
 // database table.
 func SerializeNewTrackingStatus(tt TrackingStatus) error {

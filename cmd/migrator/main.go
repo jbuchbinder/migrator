@@ -37,6 +37,7 @@ func main() {
 		migrators[i] = &migrator.Migrator{
 			SourceDsn:        src,
 			SourceTable:      config.Migrations[i].Source.Table,
+			SourceKey:        config.Migrations[i].Source.Key,
 			DestinationDsn:   dest,
 			DestinationTable: config.Migrations[i].Target.Table,
 			Parameters: &migrator.Parameters{

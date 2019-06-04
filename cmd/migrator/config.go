@@ -26,6 +26,7 @@ type Migrations struct {
 	Source struct {
 		Dsn   string `yaml:"dsn"`
 		Table string `yaml:"table"`
+		Key   string `yaml:"key"`
 	} `yaml:"source"`
 	Target struct {
 		Dsn   string `yaml:"dsn"`

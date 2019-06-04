@@ -6,6 +6,7 @@ migrations:
     source:
       dsn: migrator:migrator@/a
       table: x
+      key: id
     target:
       dsn: migrator:migrator@/b
       table: x
