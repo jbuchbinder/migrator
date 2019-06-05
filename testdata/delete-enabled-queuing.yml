@@ -11,6 +11,7 @@ migrations:
       dsn: migrator:migrator@/b
       table: x
     extractor: queue
+    transformer: default
 parameters:
   batch-size: 10000
   insert-batch-size: 1000

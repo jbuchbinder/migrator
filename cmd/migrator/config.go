@@ -3,6 +3,7 @@ package main
 import (
 	"io/ioutil"
 
+	"github.com/jbuchbinder/migrator"
 	"gopkg.in/yaml.v2"
 )
 
@@ -32,7 +33,9 @@ type Migrations struct {
 		Dsn   string `yaml:"dsn"`
 		Table string `yaml:"table"`
 	} `yaml:"target"`
-	Extractor string
+	Extractor             string               `yaml:"extractor"`
+	Transformer           string               `yaml:"transformer"`
+	TransformerParameters *migrator.Parameters `yaml:"transformer-parameters"`
 }
 
 // SetDefaults creates a series of reasonable default values for the current

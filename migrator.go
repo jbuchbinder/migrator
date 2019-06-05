@@ -36,8 +36,8 @@ type Migrator struct {
 	DestinationTable string
 
 	// Parameters are a map of arbitrary values / structures which are
-	// passed to all of the constituent functions ( Extractor, Transformer,
-	// Loader ) in the Migrator.
+	// passed to all of the constituent functions except for Transformer
+	// ( Extractor, Loader ) in the Migrator.
 	Parameters *Parameters
 
 	// Extractor represents the Extractor callback.
@@ -47,6 +47,10 @@ type Migrator struct {
 	// at a minimum, set to DefaultTransformer if there is no conversion
 	// set to take place.
 	Transformer Transformer
+
+	// TransformerParameters are a map of arbitrary parameters specific
+	// to transformers.
+	TransformerParameters *Parameters
 
 	// Loader represents the Loader callback.
 	Loader Loader
@@ -82,6 +86,11 @@ func (m *Migrator) Init() error {
 	// Adjust with forced params
 	m.SourceDsn.ParseTime = true
 	m.DestinationDsn.ParseTime = true
+
+	// Avoid NPEs and just pass basic params if there are no TransformerParameters
+	if m.TransformerParameters == nil {
+		m.TransformerParameters = m.Parameters
+	}
 
 	log.Printf(tag+"Using source dsn: %s", m.SourceDsn.FormatDSN())
 	m.sourceDb, err = sql.Open("mysql", m.SourceDsn.FormatDSN())
@@ -164,7 +173,8 @@ func (m *Migrator) Run() error {
 				log.Printf(tag + "Extractor: " + err.Error())
 			}
 			log.Printf(tag+"Extracted %d rows", len(rows))
-			err = m.Loader(m.destinationDb, m.Transformer(m.DestinationDsn.DBName, m.DestinationTable, rows, m.Parameters), m.Parameters)
+
+			err = m.Loader(m.destinationDb, m.Transformer(m.DestinationDsn.DBName, m.DestinationTable, rows, m.TransformerParameters), m.Parameters)
 			if err != nil {
 				log.Printf(tag + "Loader: " + err.Error())
 

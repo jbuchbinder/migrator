@@ -34,6 +34,7 @@ func main() {
 			continue
 		}
 
+		log.Printf("Initializing with transformer parameters #%v", config.Migrations[i].TransformerParameters)
 		migrators[i] = &migrator.Migrator{
 			SourceDsn:        src,
 			SourceTable:      config.Migrations[i].Source.Table,
@@ -45,9 +46,10 @@ func main() {
 				"InsertBatchSize":   config.Parameters.InsertBatchSize,
 				"SequentialReplace": config.Parameters.SequentialReplace,
 			},
-			Extractor:   migrator.ExtractorMap[config.Migrations[i].Extractor],
-			Transformer: migrator.DefaultTransformer,
-			Loader:      migrator.DefaultLoader,
+			Extractor:             migrator.ExtractorMap[config.Migrations[i].Extractor],
+			Transformer:           migrator.TransformerMap[config.Migrations[i].Transformer],
+			TransformerParameters: config.Migrations[i].TransformerParameters,
+			Loader:                migrator.DefaultLoader,
 		}
 		err := migrators[i].Init()
 		if err != nil {

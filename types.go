@@ -11,6 +11,9 @@ var (
 	// to track TrackingStatus instances, and exists within the target
 	// database.
 	TrackingTableName = "EtlPosition"
+	// TransformerMap is a map of Transformer functions which can be used
+	// to instantiate a Transformer based only on a string.
+	TransformerMap = make(map[string]Transformer)
 	// ExtractorMap is a map of Extractor functions which can be used
 	// to instantiate an Extractor based only on a string.
 	ExtractorMap = make(map[string]Extractor)
