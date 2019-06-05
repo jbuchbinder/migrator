@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"log"
+	"math/rand"
 	"time"
 
 	"github.com/go-sql-driver/mysql"
@@ -66,7 +67,7 @@ type Migrator struct {
 // Init initializes the underlying MySQL database connections for the
 // Migrator instance.
 func (m *Migrator) Init() error {
-	tag := "Migrator.Init(): "
+	tag := "Migrator.Init(): [" + m.SourceDsn.DBName + "." + m.SourceTable + "] "
 
 	var err error
 	log.Printf(tag + "Initializing migrator")
@@ -144,7 +145,7 @@ func (m *Migrator) Init() error {
 // Run spins off a goroutine with a running migrator until the corresponding
 // Quit() method is called.
 func (m *Migrator) Run() error {
-	tag := "Migrator.Run(): "
+	tag := "Migrator.Run(): [" + m.SourceDsn.DBName + "." + m.SourceTable + "] "
 
 	if !m.initialized {
 		return errors.New(tag + "Not initialized")
@@ -174,7 +175,12 @@ func (m *Migrator) Run() error {
 			}
 			log.Printf(tag+"Extracted %d rows", len(rows))
 
-			err = m.Loader(m.destinationDb, m.Transformer(m.DestinationDsn.DBName, m.DestinationTable, rows, m.TransformerParameters), m.Parameters)
+			log.Printf(tag+"Running transformer for %s.%s", m.SourceDsn.DBName, m.SourceTable)
+			log.Printf(tag+"Transformer %#v (%s,%s,%#v,%#v)", m.Transformer, m.DestinationDsn.DBName, m.DestinationTable, rows, m.TransformerParameters)
+			data := m.Transformer(m.DestinationDsn.DBName, m.DestinationTable, rows, m.TransformerParameters)
+			log.Printf(tag+"Transformer put out %#v for data", data)
+			log.Printf(tag+"Running loader for %s.%s", m.SourceDsn.DBName, m.SourceTable)
+			err = m.Loader(m.destinationDb, data, m.Parameters)
 			if err != nil {
 				log.Printf(tag + "Loader: " + err.Error())
 
@@ -189,8 +195,9 @@ func (m *Migrator) Run() error {
 			ts = newTs
 
 			if !more {
-				log.Printf(tag+"No more rows detected to process, sleeping for %d sec", delay)
+				log.Printf(tag+"No more rows detected to process, sleeping for %d sec + random offset", delay)
 				time.Sleep(time.Second * time.Duration(delay))
+				time.Sleep(time.Millisecond * (time.Duration(float64(delay*1000) * rand.Float64())))
 
 				ts, err = GetTrackingStatus(m.destinationDb, m.SourceDsn.DBName, m.SourceTable)
 				if err != nil {
@@ -210,7 +217,7 @@ func (m *Migrator) Run() error {
 // Close forcibly closes the database connections for the Migrator instance
 // and marks it as being uninitialized.
 func (m *Migrator) Close() {
-	tag := "Migrator.Close(): "
+	tag := "Migrator.Close(): [" + m.SourceDsn.DBName + "." + m.SourceTable + "] "
 
 	log.Printf(tag + "Closing connections")
 	if m.sourceDb != nil {

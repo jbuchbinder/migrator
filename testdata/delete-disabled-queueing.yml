@@ -15,4 +15,5 @@ migrations:
 parameters:
   batch-size: 10000
   insert-batch-size: 1000
+  sleep-between-runs: 5
 timeout: 0

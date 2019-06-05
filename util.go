@@ -1,6 +1,7 @@
 package migrator
 
 import (
+	"os"
 	"time"
 )
 
@@ -68,4 +69,14 @@ func paramBool(params Parameters, key string, defaultValue bool) bool {
 		return out
 	}
 	return defaultValue
+}
+
+// FileExists reports whether the named file or directory exists.
+func FileExists(name string) bool {
+	if _, err := os.Stat(name); err != nil {
+		if os.IsNotExist(err) {
+			return false
+		}
+	}
+	return true
 }

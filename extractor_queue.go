@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 )
 
@@ -69,7 +70,26 @@ var ExtractorQueue = func(db *sql.DB, dbName, tableName string, ts TrackingStatu
 			continue
 		}
 
-		rows, err := db.Query("SELECT * FROM `"+tableName+"` WHERE `"+rq.PrimaryKeyColumnName+"` = ? LIMIT 1", rq.PrimaryKeyColumnValue)
+		var rows *sql.Rows
+		if strings.Index(rq.PrimaryKeyColumnName, ",") != -1 {
+			// Support for multiple indices and values separated by commas
+			qs := "SELECT * FROM `" + tableName + "` WHERE "
+			for iter, x := range strings.Split(rq.PrimaryKeyColumnName, ",") {
+				if iter != 0 {
+					qs += " AND "
+				}
+				qs += "`" + x + "` = ? "
+			}
+			qs += " LIMIT 1"
+			qvRaw := strings.Split(rq.PrimaryKeyColumnValue, ",")
+			qv := []interface{}{}
+			for _, v := range qvRaw {
+				qv = append(qv, v)
+			}
+			rows, err = db.Query(qs, qv...)
+		} else {
+			rows, err = db.Query("SELECT * FROM `"+tableName+"` WHERE `"+rq.PrimaryKeyColumnName+"` = ? LIMIT 1", rq.PrimaryKeyColumnValue)
+		}
 		if err != nil {
 			return false, data, ts, err
 		}

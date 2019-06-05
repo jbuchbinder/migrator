@@ -34,21 +34,39 @@ func main() {
 			continue
 		}
 
-		log.Printf("Initializing with transformer parameters #%v", config.Migrations[i].TransformerParameters)
+		parameters := &migrator.Parameters{
+			"BatchSize":         config.Parameters.BatchSize,
+			"InsertBatchSize":   config.Parameters.InsertBatchSize,
+			"SequentialReplace": config.Parameters.SequentialReplace,
+			"SleepBetweenRuns":  config.Parameters.SleepBetweenRuns,
+		}
+
+		transformer := config.Migrations[i].Transformer
+		if transformer == "" {
+			transformer = "default"
+		}
+
+		if _, ok := migrator.TransformerMap[transformer]; !ok {
+			log.Printf("Unable to resolve transformer '%s' for %#v", transformer, config.Migrations[i])
+			panic("bailing out")
+		}
+
+		transformerParameters := config.Migrations[i].TransformerParameters
+		if transformerParameters == nil {
+			transformerParameters = parameters
+		}
+
+		log.Printf("Initializing with transformer parameters #%v", transformerParameters)
 		migrators[i] = &migrator.Migrator{
-			SourceDsn:        src,
-			SourceTable:      config.Migrations[i].Source.Table,
-			SourceKey:        config.Migrations[i].Source.Key,
-			DestinationDsn:   dest,
-			DestinationTable: config.Migrations[i].Target.Table,
-			Parameters: &migrator.Parameters{
-				"BatchSize":         config.Parameters.BatchSize,
-				"InsertBatchSize":   config.Parameters.InsertBatchSize,
-				"SequentialReplace": config.Parameters.SequentialReplace,
-			},
+			SourceDsn:             src,
+			SourceTable:           config.Migrations[i].Source.Table,
+			SourceKey:             config.Migrations[i].Source.Key,
+			DestinationDsn:        dest,
+			DestinationTable:      config.Migrations[i].Target.Table,
+			Parameters:            parameters,
 			Extractor:             migrator.ExtractorMap[config.Migrations[i].Extractor],
-			Transformer:           migrator.TransformerMap[config.Migrations[i].Transformer],
-			TransformerParameters: config.Migrations[i].TransformerParameters,
+			Transformer:           migrator.TransformerMap[transformer],
+			TransformerParameters: transformerParameters,
 			Loader:                migrator.DefaultLoader,
 		}
 		err := migrators[i].Init()

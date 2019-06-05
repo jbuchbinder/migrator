@@ -18,6 +18,7 @@ type MigratorConfig struct {
 		BatchSize         int  `yaml:"batch-size"`
 		InsertBatchSize   int  `yaml:"insert-batch-size"`
 		SequentialReplace bool `yaml:"sequential-replace"`
+		SleepBetweenRuns  int  `yaml:"sleep-between-runs"`
 	} `yaml:"parameters"`
 	Timeout int `yaml:"timeout"`
 }
