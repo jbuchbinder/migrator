@@ -183,7 +183,6 @@ func (m *Migrator) Run() error {
 			err = m.Loader(m.destinationDb, data, m.Parameters)
 			if err != nil {
 				log.Printf(tag + "Loader: " + err.Error())
-
 			}
 
 			log.Printf(tag + "Tracking: Updating table")

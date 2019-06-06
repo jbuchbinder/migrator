@@ -36,21 +36,21 @@ var DefaultLoader = func(db *sql.DB, tables []TableData, params *Parameters) err
 			switch method {
 			case "REPLACE":
 				log.Printf(tag + "Method REPLACE")
-				err = BatchedReplace(tx, table.TableName, rowsByMethod[method], size)
+				err = BatchedReplace(tx, table.TableName, rowsByMethod[method], size, params)
 
 			case "INSERT":
 				log.Printf(tag + "Method INSERT")
-				err = BatchedInsert(tx, table.TableName, rowsByMethod[method], size)
+				err = BatchedInsert(tx, table.TableName, rowsByMethod[method], size, params)
 				break
 
 			case "REMOVE":
 				log.Printf(tag + "Method REMOVE")
-				err = BatchedRemove(tx, table.TableName, rowsByMethod[method], size)
+				err = BatchedRemove(tx, table.TableName, rowsByMethod[method], size, params)
 				break
 
 			default:
 				log.Printf(tag+"Unknown method '%s' present, falling back on INSERT", method)
-				err = BatchedInsert(tx, table.TableName, rowsByMethod[method], size)
+				err = BatchedInsert(tx, table.TableName, rowsByMethod[method], size, params)
 				break
 			}
 			if err != nil {
