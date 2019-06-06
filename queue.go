@@ -57,6 +57,6 @@ func (pq *PersistenceQueue) GrabItem(item interface{}, fn func(interface{}) erro
 	return err
 }
 
-func (pq *PersistenceQueue) Close() error {
-	return pq.queue.Close()
+func (pq *PersistenceQueue) Close() {
+	pq.queue.Close()
 }
