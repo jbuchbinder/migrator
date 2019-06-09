@@ -3,6 +3,9 @@ package main
 import (
 	"flag"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/go-sql-driver/mysql"
@@ -20,6 +23,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	stop := make(chan os.Signal)
+	signal.Notify(stop, syscall.SIGTERM)
+	signal.Notify(stop, syscall.SIGINT)
 
 	migrator.TrackingTableName = config.TrackingTableName
 
@@ -95,7 +102,17 @@ func main() {
 		return
 	}
 
-	for {
-		time.Sleep(500 * time.Millisecond)
+	log.Printf("Waiting for stop signals")
+	sig := <-stop
+	log.Printf("caught sig: %+v", sig)
+	log.Printf("Signalling all migrators to stop")
+	for i := range migrators {
+		err := migrators[i].Quit()
+		if err != nil {
+			log.Printf("ERROR: %s", err.Error())
+		}
 	}
+	log.Printf("Wait for %d seconds to finish processing", config.Parameters.SleepBetweenRuns*2)
+	time.Sleep(2 * time.Duration(config.Parameters.SleepBetweenRuns) * time.Second)
+	os.Exit(0)
 }
