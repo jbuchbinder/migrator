@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 
@@ -30,51 +31,61 @@ func main() {
 
 	migrator.TrackingTableName = config.TrackingTableName
 
+	var wg sync.WaitGroup
+
 	migrators := make([]*migrator.Migrator, len(config.Migrations))
 
 	for i := 0; i < len(config.Migrations); i++ {
-		src, _ := mysql.ParseDSN(config.Migrations[i].Source.Dsn)
-		dest, _ := mysql.ParseDSN(config.Migrations[i].Target.Dsn)
+		src, _ := mysql.ParseDSN(config.Migrations[i].SourceDsn)
+		dest, _ := mysql.ParseDSN(config.Migrations[i].TargetDsn)
 
-		if _, ok := migrator.ExtractorMap[config.Migrations[i].Extractor]; !ok {
-			log.Printf("'%s' is not a valid type of extractor", config.Migrations[i].Extractor)
-			continue
-		}
-
-		parameters := &migrator.Parameters{
-			"BatchSize":         config.Parameters.BatchSize,
-			"InsertBatchSize":   config.Parameters.InsertBatchSize,
-			"SequentialReplace": config.Parameters.SequentialReplace,
-			"SleepBetweenRuns":  config.Parameters.SleepBetweenRuns,
-		}
-
-		transformer := config.Migrations[i].Transformer
-		if transformer == "" {
-			transformer = "default"
-		}
-
-		if _, ok := migrator.TransformerMap[transformer]; !ok {
-			log.Printf("Unable to resolve transformer '%s' for %#v", transformer, config.Migrations[i])
-			panic("bailing out")
-		}
-
-		transformerParameters := config.Migrations[i].TransformerParameters
-		if transformerParameters == nil {
-			transformerParameters = parameters
-		}
-
-		log.Printf("Initializing with transformer parameters #%v", transformerParameters)
 		migrators[i] = &migrator.Migrator{
-			SourceDsn:             src,
-			SourceTable:           config.Migrations[i].Source.Table,
-			SourceKey:             config.Migrations[i].Source.Key,
-			DestinationDsn:        dest,
-			DestinationTable:      config.Migrations[i].Target.Table,
-			Parameters:            parameters,
-			Extractor:             migrator.ExtractorMap[config.Migrations[i].Extractor],
-			Transformer:           migrator.TransformerMap[transformer],
-			TransformerParameters: transformerParameters,
-			Loader:                migrator.DefaultLoader,
+			SourceDsn:      src,
+			DestinationDsn: dest,
+			Iterations:     []migrator.Iteration{},
+		}
+		migrators[i].SetWaitGroup(&wg)
+
+		for j := range config.Migrations[i].Iterations {
+			if _, ok := migrator.ExtractorMap[config.Migrations[i].Iterations[j].Extractor]; !ok {
+				log.Printf("'%s' is not a valid type of extractor", config.Migrations[i].Iterations[j].Extractor)
+				continue
+			}
+
+			parameters := &migrator.Parameters{
+				"BatchSize":         config.Parameters.BatchSize,
+				"InsertBatchSize":   config.Parameters.InsertBatchSize,
+				"SequentialReplace": config.Parameters.SequentialReplace,
+				"SleepBetweenRuns":  config.Parameters.SleepBetweenRuns,
+			}
+
+			transformer := config.Migrations[i].Iterations[j].Transformer
+			if transformer == "" {
+				transformer = "default"
+			}
+
+			if _, ok := migrator.TransformerMap[transformer]; !ok {
+				log.Printf("Unable to resolve transformer '%s' for %#v", transformer, config.Migrations[i])
+				panic("bailing out")
+			}
+
+			transformerParameters := config.Migrations[i].Iterations[j].TransformerParameters
+			if transformerParameters == nil {
+				transformerParameters = parameters
+			}
+
+			log.Printf("Initializing with transformer parameters #%v", transformerParameters)
+			iter := migrator.Iteration{
+				SourceTable:           config.Migrations[i].Iterations[j].Source.Table,
+				SourceKey:             config.Migrations[i].Iterations[j].Source.Key,
+				DestinationTable:      config.Migrations[i].Iterations[j].Target.Table,
+				Parameters:            parameters,
+				Extractor:             migrator.ExtractorMap[config.Migrations[i].Iterations[j].Extractor],
+				Transformer:           migrator.TransformerMap[transformer],
+				TransformerParameters: transformerParameters,
+				Loader:                migrator.DefaultLoader,
+			}
+			migrators[i].Iterations = append(migrators[i].Iterations, iter)
 		}
 		err := migrators[i].Init()
 		if err != nil {
@@ -112,7 +123,7 @@ func main() {
 			log.Printf("ERROR: %s", err.Error())
 		}
 	}
-	log.Printf("Wait for %d seconds to finish processing", config.Parameters.SleepBetweenRuns*2)
-	time.Sleep(2 * time.Duration(config.Parameters.SleepBetweenRuns) * time.Second)
+	log.Printf("Wait for all threads to finish processing")
+	wg.Wait()
 	os.Exit(0)
 }

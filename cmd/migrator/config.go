@@ -25,18 +25,20 @@ type MigratorConfig struct {
 
 // Migrations represents a single migration coniguration instance.
 type Migrations struct {
-	Source struct {
-		Dsn   string `yaml:"dsn"`
-		Table string `yaml:"table"`
-		Key   string `yaml:"key"`
-	} `yaml:"source"`
-	Target struct {
-		Dsn   string `yaml:"dsn"`
-		Table string `yaml:"table"`
-	} `yaml:"target"`
-	Extractor             string               `yaml:"extractor"`
-	Transformer           string               `yaml:"transformer"`
-	TransformerParameters *migrator.Parameters `yaml:"transformer-parameters"`
+	SourceDsn  string `yaml:"source-dsn"`
+	TargetDsn  string `yaml:"target-dsn"`
+	Iterations []struct {
+		Source struct {
+			Table string `yaml:"table"`
+			Key   string `yaml:"key"`
+		} `yaml:"source"`
+		Target struct {
+			Table string `yaml:"table"`
+		} `yaml:"target"`
+		Extractor             string               `yaml:"extractor"`
+		Transformer           string               `yaml:"transformer"`
+		TransformerParameters *migrator.Parameters `yaml:"transformer-parameters"`
+	} `yaml:"iterations"`
 }
 
 // SetDefaults creates a series of reasonable default values for the current
