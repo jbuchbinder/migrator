@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/go-sql-driver/mysql"
+	"go.elastic.co/apm/module/apmsql"
 )
 
 // Migrator represents an object which encompasses an entire end-to-end
@@ -24,7 +25,11 @@ type Migrator struct {
 	// https://github.com/go-sql-driver/mysql#dsn-data-source-name
 	DestinationDsn *mysql.Config
 
+	// Iterations represents all of the actual migrations being performed.
 	Iterations []Iteration
+
+	// Apm determines whether APM support will be enabled or disabled
+	Apm bool
 
 	// Internal fields
 
@@ -84,7 +89,7 @@ func (m Migrator) GetWaitGroup() sync.WaitGroup {
 // Init initializes the underlying MySQL database connections for the
 // Migrator instance.
 func (m *Migrator) Init() error {
-	tag := "Migrator.Init(): [" + m.SourceDsn.DBName + "] "
+	tag := "Migrator.Init(): [" + m.SourceDsn.FormatDSN() + "] "
 
 	var err error
 	log.Printf(tag + "Initializing migrator")
@@ -102,7 +107,12 @@ func (m *Migrator) Init() error {
 	m.DestinationDsn.ParseTime = true
 
 	log.Printf(tag+"Using source dsn: %s", m.SourceDsn.FormatDSN())
-	m.sourceDb, err = sql.Open("mysql", m.SourceDsn.FormatDSN())
+	if m.Apm {
+		log.Printf(tag+"Reporting APM stats for %s", m.SourceDsn.FormatDSN())
+		m.sourceDb, err = apmsql.Open("apmmysql", m.SourceDsn.FormatDSN())
+	} else {
+		m.sourceDb, err = sql.Open("mysql", m.SourceDsn.FormatDSN())
+	}
 	if err != nil {
 		return err
 	}
@@ -110,7 +120,12 @@ func (m *Migrator) Init() error {
 	m.sourceDb.SetMaxOpenConns(len(m.Iterations) * 3)
 
 	log.Printf(tag+"Using destination dsn: %s", m.DestinationDsn.FormatDSN())
-	m.destinationDb, err = sql.Open("mysql", m.DestinationDsn.FormatDSN())
+	if m.Apm {
+		log.Printf(tag+"Reporting APM stats for %s", m.DestinationDsn.FormatDSN())
+		m.destinationDb, err = apmsql.Open("apmmysql", m.DestinationDsn.FormatDSN())
+	} else {
+		m.destinationDb, err = sql.Open("mysql", m.DestinationDsn.FormatDSN())
+	}
 	if err != nil {
 		return err
 	}
@@ -268,4 +283,22 @@ func (m *Migrator) Quit() error {
 	m.terminated = true
 
 	return nil
+}
+
+// ParseDSN parses the given go-sql-driver/mysql datasource name.
+func ParseDSN(name string) apmsql.DSNInfo {
+	cfg, err := mysql.ParseDSN(name)
+	if err != nil {
+		// mysql.Open will fail with the same error,
+		// so just return a zero value.
+		return apmsql.DSNInfo{}
+	}
+	return apmsql.DSNInfo{
+		Database: cfg.DBName,
+		User:     cfg.User,
+	}
+}
+
+func init() {
+	apmsql.Register("apmmysql", &mysql.MySQLDriver{}, apmsql.WithDSNParser(ParseDSN))
 }

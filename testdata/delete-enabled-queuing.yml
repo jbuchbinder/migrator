@@ -10,6 +10,7 @@ migrations:
     target:
       dsn: migrator:migrator@/b
       table: x
+    apm: true
     extractor: queue
     transformer: default
 parameters:

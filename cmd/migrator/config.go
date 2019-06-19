@@ -23,10 +23,11 @@ type MigratorConfig struct {
 	Timeout int `yaml:"timeout"`
 }
 
-// Migrations represents a single migration coniguration instance.
+// Migrations represents a single migration configuration instance.
 type Migrations struct {
 	SourceDsn  string `yaml:"source-dsn"`
 	TargetDsn  string `yaml:"target-dsn"`
+	Apm        bool   `yaml:"apm"`
 	Iterations []struct {
 		Source struct {
 			Table string `yaml:"table"`

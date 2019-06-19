@@ -42,13 +42,14 @@ func main() {
 		migrators[i] = &migrator.Migrator{
 			SourceDsn:      src,
 			DestinationDsn: dest,
+			Apm:            config.Migrations[i].Apm,
 			Iterations:     []migrator.Iteration{},
 		}
 		migrators[i].SetWaitGroup(&wg)
 
 		for j := range config.Migrations[i].Iterations {
 			if _, ok := migrator.ExtractorMap[config.Migrations[i].Iterations[j].Extractor]; !ok {
-				log.Printf("'%s' is not a valid type of extractor", config.Migrations[i].Iterations[j].Extractor)
+				log.Printf("'%s' is not a valid type of extractor [%#v]", config.Migrations[i].Iterations[j].Extractor, config.Migrations[i].Iterations[j])
 				continue
 			}
 
