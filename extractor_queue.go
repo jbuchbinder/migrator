@@ -16,18 +16,20 @@ func init() {
 // triggered by INSERT or UPDATE to notify the extractor that it needs
 // to replicate a row.
 var ExtractorQueue = func(db *sql.DB, dbName, tableName string, ts TrackingStatus, params *Parameters) (bool, []SQLRow, TrackingStatus, error) {
+	batchSize := paramInt(*params, "BatchSize", DefaultBatchSize)
+	debug := paramBool(*params, "Debug", false)
+
 	tag := fmt.Sprintf("ExtractorQueue[%s.%s]: ", dbName, tableName)
 
 	moreData := false
 
-	log.Printf(tag+"Beginning run with params %#v", params)
+	if debug {
+		log.Printf(tag+"Beginning run with params %#v", params)
+	}
 
 	data := make([]SQLRow, 0)
 	//minSeq := int64(math.MaxInt64)
 	//var maxSeq int64
-
-	batchSize := paramInt(*params, "BatchSize", DefaultBatchSize)
-	debug := paramBool(*params, "Debug", false)
 
 	tsStart := time.Now()
 

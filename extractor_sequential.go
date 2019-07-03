@@ -16,24 +16,30 @@ func init() {
 // sequence to determine which rows should be extracted from the source
 // database table.
 var ExtractorSequential = func(db *sql.DB, dbName, tableName string, ts TrackingStatus, params *Parameters) (bool, []SQLRow, TrackingStatus, error) {
+	batchSize := paramInt(*params, "BatchSize", DefaultBatchSize)
+	sequentialReplace := paramBool(*params, "SequentialReplace", false)
+	debug := paramBool(*params, "Debug", false)
+
 	tag := fmt.Sprintf("ExtractorSequential[%s.%s]: ", dbName, tableName)
 
 	moreData := false
 
-	log.Printf(tag+"Beginning run with params %#v", params)
+	if debug {
+		log.Printf(tag+"Beginning run with params %#v", params)
+	}
 
 	data := make([]SQLRow, 0)
 	minSeq := int64(math.MaxInt64)
 	var maxSeq int64
 
-	batchSize := paramInt(*params, "BatchSize", DefaultBatchSize)
-	sequentialReplace := paramBool(*params, "SequentialReplace", false)
-	debug := paramBool(*params, "Debug", false)
-
 	tsStart := time.Now()
 
+	if debug {
+		log.Printf(tag+"Query: \"SELECT * FROM `"+tableName+"` WHERE `"+ts.ColumnName+"` > %d LIMIT %d\"", ts.SequentialPosition, batchSize)
+	}
 	rows, err := db.Query("SELECT * FROM `"+tableName+"` WHERE `"+ts.ColumnName+"` > ? LIMIT ?", ts.SequentialPosition, batchSize)
 	if err != nil {
+		log.Printf(tag + "ERR: " + err.Error())
 		return false, data, ts, err
 	}
 	defer rows.Close()

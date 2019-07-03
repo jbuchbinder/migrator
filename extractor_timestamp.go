@@ -14,22 +14,28 @@ func init() {
 // ExtractorTimestamp is an Extractor instance which uses a DATETIME/TIMESTAMP
 // field to determine which rows to pull from the source database table.
 var ExtractorTimestamp = func(db *sql.DB, dbName, tableName string, ts TrackingStatus, params *Parameters) (bool, []SQLRow, TrackingStatus, error) {
+	batchSize := paramInt(*params, "BatchSize", DefaultBatchSize)
+	debug := paramBool(*params, "Debug", false)
+
 	tag := fmt.Sprintf("ExtractorTimestamp[%s.%s]: ", dbName, tableName)
 
 	moreData := false
 
-	log.Printf(tag+"Beginning run with params %#v", params)
+	if debug {
+		log.Printf(tag+"Beginning run with params %#v", params)
+	}
 
 	data := make([]SQLRow, 0)
 	var maxStamp time.Time
 
-	batchSize := paramInt(*params, "BatchSize", DefaultBatchSize)
-	debug := paramBool(*params, "Debug", false)
-
 	tsStart := time.Now()
 
+	if debug {
+		log.Printf(tag+"Query: \"SELECT * FROM `"+tableName+"` WHERE `"+ts.ColumnName+"` > %v LIMIT %d\"", ts.TimestampPosition, batchSize)
+	}
 	rows, err := db.Query("SELECT * FROM `"+tableName+"` WHERE `"+ts.ColumnName+"` > ? LIMIT ?", ts.TimestampPosition, batchSize)
 	if err != nil {
+		log.Printf(tag + "ERR: " + err.Error())
 		return false, data, ts, err
 	}
 	defer rows.Close()
@@ -75,14 +81,20 @@ var ExtractorTimestamp = func(db *sql.DB, dbName, tableName string, ts TrackingS
 	}
 
 	if dataCount < batchSize {
-		log.Printf(tag+"Batch size %d, row count %d; indicating no more data", batchSize, dataCount)
+		if debug {
+			log.Printf(tag+"Batch size %d, row count %d; indicating no more data", batchSize, dataCount)
+		}
 		moreData = false
 	} else {
-		log.Printf(tag+"Batch size %d == row count %d; indicating more data", batchSize, dataCount)
+		if debug {
+			log.Printf(tag+"Batch size %d == row count %d; indicating more data", batchSize, dataCount)
+		}
 		moreData = true
 	}
 
-	log.Printf(tag+"%s high timestamp value %#v", ts.ColumnName, maxStamp)
+	if debug {
+		log.Printf(tag+"%s high timestamp value %#v", ts.ColumnName, maxStamp)
+	}
 	err = SetTrackingStatusTimestamp(ts.Db, dbName, tableName, maxStamp)
 	// Copy old object ...
 	newTs := &TrackingStatus{

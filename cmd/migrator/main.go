@@ -54,6 +54,7 @@ func main() {
 			}
 
 			parameters := &migrator.Parameters{
+				"Debug":             config.Debug,
 				"BatchSize":         config.Parameters.BatchSize,
 				"InsertBatchSize":   config.Parameters.InsertBatchSize,
 				"SequentialReplace": config.Parameters.SequentialReplace,
