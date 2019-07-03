@@ -44,13 +44,13 @@ func main() {
 			DestinationDsn: dest,
 			Apm:            config.Migrations[i].Apm,
 			Iterations:     []migrator.Iteration{},
-			Paramters: &migrator.Parameters{
+			Parameters: &migrator.Parameters{
 				"Debug":             config.Debug,
 				"BatchSize":         config.Parameters.BatchSize,
 				"InsertBatchSize":   config.Parameters.InsertBatchSize,
 				"SequentialReplace": config.Parameters.SequentialReplace,
 				"SleepBetweenRuns":  config.Parameters.SleepBetweenRuns,
-			}
+			},
 		}
 		migrators[i].SetWaitGroup(&wg)
 
