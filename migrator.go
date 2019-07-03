@@ -31,6 +31,11 @@ type Migrator struct {
 	// Apm determines whether APM support will be enabled or disabled
 	Apm bool
 
+	// Parameters are a map of arbitrary values / structures which are
+	// passed to all of the constituent functions except for Transformer
+	// ( Extractor, Loader ) in the Migrator.
+	Parameters *Parameters
+
 	// Internal fields
 
 	sourceDb      *sql.DB
@@ -41,7 +46,6 @@ type Migrator struct {
 }
 
 type Iteration struct {
-
 	// DestinationTable defines the table name where data will be pushed
 	// by the Loader.
 	DestinationTable string
@@ -176,6 +180,8 @@ func (m *Migrator) Init() error {
 // Run spins off a goroutine with a running migrator until the corresponding
 // Quit() method is called.
 func (m *Migrator) Run() error {
+	debug := paramBool(*(m.Parameters), "Debug", false)
+
 	tag := "Migrator.Run(): [" + m.SourceDsn.DBName + "] "
 
 	if !m.initialized {
@@ -194,7 +200,9 @@ func (m *Migrator) Run() error {
 				m.wg.Done()
 				return
 			}
-			log.Printf(tag + "Entering loop")
+			if debug {
+				log.Printf(tag + "Entering loop")
+			}
 			for {
 				if m.terminated {
 					log.Printf(tag + "Received quit signal")
@@ -202,25 +210,35 @@ func (m *Migrator) Run() error {
 					m.wg.Done()
 					return
 				}
-				log.Printf(tag+"TrackingStatus: %s", ts.String())
+				if debug {
+					log.Printf(tag+"TrackingStatus: %s", ts.String())
+				}
 
 				more, rows, newTs, err := m.Iterations[x].Extractor(m.sourceDb, m.SourceDsn.DBName, m.Iterations[x].SourceTable, ts, m.Iterations[x].Parameters)
 				if err != nil {
 					log.Printf(tag + "Extractor: " + err.Error())
 				}
-				log.Printf(tag+"Extracted %d rows", len(rows))
+				if debug {
+					log.Printf(tag+"Extracted %d rows", len(rows))
+				}
 
-				log.Printf(tag+"Running transformer for %s.%s", m.SourceDsn.DBName, m.Iterations[x].SourceTable)
-				log.Printf(tag+"Transformer %#v (%s,%s,%#v,%#v)", m.Iterations[x].Transformer, m.DestinationDsn.DBName, m.Iterations[x].DestinationTable, rows, m.Iterations[x].TransformerParameters)
+				if debug {
+					log.Printf(tag+"Running transformer for %s.%s", m.SourceDsn.DBName, m.Iterations[x].SourceTable)
+					log.Printf(tag+"Transformer %#v (%s,%s,%#v,%#v)", m.Iterations[x].Transformer, m.DestinationDsn.DBName, m.Iterations[x].DestinationTable, rows, m.Iterations[x].TransformerParameters)
+				}
 				data := m.Iterations[x].Transformer(m.DestinationDsn.DBName, m.Iterations[x].DestinationTable, rows, m.Iterations[x].TransformerParameters)
-				log.Printf(tag+"Transformer put out %#v for data", data)
-				log.Printf(tag+"Running loader for %s.%s", m.SourceDsn.DBName, m.Iterations[x].SourceTable)
+				if debug {
+					log.Printf(tag+"Transformer put out %#v for data", data)
+					log.Printf(tag+"Running loader for %s.%s", m.SourceDsn.DBName, m.Iterations[x].SourceTable)
+				}
 				err = m.Iterations[x].Loader(m.destinationDb, data, m.Iterations[x].Parameters)
 				if err != nil {
 					log.Printf(tag + "Loader: " + err.Error())
 				}
 
-				log.Printf(tag + "Tracking: Updating table")
+				if debug {
+					log.Printf(tag + "Tracking: Updating table")
+				}
 				err = SerializeTrackingStatus(m.destinationDb, newTs)
 				if err != nil {
 					log.Printf(tag + "Tracking: " + err.Error())
@@ -229,7 +247,9 @@ func (m *Migrator) Run() error {
 				ts = newTs
 
 				if !more {
-					log.Printf(tag+"No more rows detected to process, sleeping for %d sec + random offset", delay)
+					if debug {
+						log.Printf(tag+"No more rows detected to process, sleeping for %d sec + random offset", delay)
+					}
 					time.Sleep(time.Second * time.Duration(delay))
 					time.Sleep(time.Millisecond * (time.Duration(float64(delay*1000) * rand.Float64())))
 
