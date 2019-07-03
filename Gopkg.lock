@@ -2,12 +2,44 @@
 
 
 [[projects]]
+  digest = "1:c47f4964978e211c6e566596ec6246c329912ea92e9bb99c00798bb4564c5b09"
+  name = "github.com/armon/go-radix"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "1a2de0c21c94309923825da3df33a4381872c795"
+  version = "v1.0.0"
+
+[[projects]]
   digest = "1:2734f64badcd6ff46a23ef1864621a0c42b694c91383dc18c6b375bfe1fe9984"
   name = "github.com/beeker1121/goque"
   packages = ["."]
   pruneopts = "UT"
   revision = "e1e63ca63c14b41209e160f54c8e7669564eacc4"
   version = "v2.0.1"
+
+[[projects]]
+  digest = "1:730ccdc4205aca926fe0abbc9994f7da1c880cd12f1c78b397ea8d2898057b2e"
+  name = "github.com/elastic/go-sysinfo"
+  packages = [
+    ".",
+    "internal/registry",
+    "providers/darwin",
+    "providers/linux",
+    "providers/shared",
+    "providers/windows",
+    "types",
+  ]
+  pruneopts = "UT"
+  revision = "8e0e854621d7e11462d5379fe90d004214482e73"
+  version = "v1.0.1"
+
+[[projects]]
+  digest = "1:5fd69478ead8ea1e30701e4aca2d7a14c97419dd1fd495e4fbb730495c61ea31"
+  name = "github.com/elastic/go-windows"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "4fe172db2494b71a5b0d1de5a0248e543d7249f4"
+  version = "v1.0.0"
 
 [[projects]]
   digest = "1:ec6f9bf5e274c833c911923c9193867f3f18788c461f76f05f62bb1510e0ae65"
@@ -24,6 +56,41 @@
   pruneopts = "UT"
   revision = "2a8bb927dd31d8daada140a5d09578521ce5c36a"
   version = "v0.0.1"
+
+[[projects]]
+  branch = "master"
+  digest = "1:ca41e6bafdc8d60c47dba38e9adfc75219a2892b09e5c2160161e7b6bf9562c2"
+  name = "github.com/joeshaw/multierror"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "69b34d4ec901851247ae7e77d33909caf9df99ed"
+
+[[projects]]
+  digest = "1:cf31692c14422fa27c83a05292eb5cbe0fb2775972e8f1f8446a71549bd8980b"
+  name = "github.com/pkg/errors"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "ba968bfe8b2f7e042a574c888954fccecfa385b4"
+  version = "v0.8.1"
+
+[[projects]]
+  digest = "1:366f5aa02ff6c1e2eccce9ca03a22a6d983da89eecff8a89965401764534eb7c"
+  name = "github.com/prometheus/procfs"
+  packages = [
+    ".",
+    "internal/fs",
+  ]
+  pruneopts = "UT"
+  revision = "3f98efb27840a48a7a2898ec80be07674d19f9c8"
+  version = "v0.0.3"
+
+[[projects]]
+  digest = "1:4866f29a95bf167c00034afe8ea572878ef0f6312c1c6b1f5e96723ebec947fa"
+  name = "github.com/santhosh-tekuri/jsonschema"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "277e64737671dcd84a8b23a6b9d9e7b392502e51"
+  version = "v2.0.1"
 
 [[projects]]
   digest = "1:5b180f17d5bc50b765f4dcf0d126c72979531cbbd7f7929bf3edd87fb801ea2d"
@@ -47,12 +114,60 @@
   version = "v1.0.0"
 
 [[projects]]
+  digest = "1:d9c6ada92b738c0c5fa21914a4190e40c4e6100ea519d688b97cd3f4e32faaf6"
+  name = "go.elastic.co/apm"
+  packages = [
+    ".",
+    "internal/apmconfig",
+    "internal/apmcontext",
+    "internal/apmhostutil",
+    "internal/apmhttputil",
+    "internal/apmlog",
+    "internal/apmschema",
+    "internal/apmstrings",
+    "internal/apmversion",
+    "internal/iochan",
+    "internal/pkgerrorsutil",
+    "internal/ringbuffer",
+    "internal/sqlscanner",
+    "internal/sqlutil",
+    "internal/wildcard",
+    "model",
+    "module/apmsql",
+    "stacktrace",
+    "transport",
+  ]
+  pruneopts = "UT"
+  revision = "c497b72e76dcd8d846c3935be0883004b81ecb72"
+  version = "v1.4.0"
+
+[[projects]]
+  digest = "1:48734c7f94880e24ce5e530e904223bfb70ac4802530f9a35fdb140bfefda2f3"
+  name = "go.elastic.co/fastjson"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "676cec79bd027a8a4618de0991f27cfe632978f1"
+  version = "v1.0.0"
+
+[[projects]]
+  branch = "master"
+  digest = "1:2c770d8251a8a2127b648f57602d75c8e40457ba070b57b38176013472f31326"
+  name = "golang.org/x/sys"
+  packages = [
+    "unix",
+    "windows",
+    "windows/registry",
+  ]
+  pruneopts = "UT"
+  revision = "04f50cda93cbb67f2afa353c52f342100e80e625"
+
+[[projects]]
   digest = "1:c25289f43ac4a68d88b02245742347c94f1e108c534dda442188015ff80669b3"
   name = "google.golang.org/appengine"
   packages = ["cloudsql"]
   pruneopts = "UT"
-  revision = "4c25cacc810c02874000e4f7071286a8e96b2515"
-  version = "v1.6.0"
+  revision = "b2f4a3cf3c67576a2ee09e1fe62656a5086ce880"
+  version = "v1.6.1"
 
 [[projects]]
   digest = "1:4d2e5a73dc1500038e504a8d78b986630e3626dc027bc030ba5c75da257cdb96"
@@ -62,12 +177,21 @@
   revision = "51d6538a90f86fe93ac480b35f37b2be17fef232"
   version = "v2.2.2"
 
+[[projects]]
+  branch = "master"
+  digest = "1:c10265d5a71326618d37e97169eddb3582f78e8ac7dcf87403b4cf619efd519a"
+  name = "howett.net/plist"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "591f970eefbbeb04d7b37f334a0c4c3256e32876"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
     "github.com/beeker1121/goque",
     "github.com/go-sql-driver/mysql",
+    "go.elastic.co/apm/module/apmsql",
     "gopkg.in/yaml.v2",
   ]
   solver-name = "gps-cdcl"
