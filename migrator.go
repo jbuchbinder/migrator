@@ -69,6 +69,9 @@ type Iteration struct {
 	// Extractor represents the Extractor callback.
 	Extractor Extractor
 
+	// ExtractorName represents the name of the extractor used
+	ExtractorName string
+
 	// Transformer represents the Transformer callback. This should be,
 	// at a minimum, set to DefaultTransformer if there is no conversion
 	// set to take place.
@@ -77,6 +80,9 @@ type Iteration struct {
 	// TransformerParameters are a map of arbitrary parameters specific
 	// to transformers.
 	TransformerParameters *Parameters
+
+	// LoaderName represents the name of the loader used
+	LoaderName string
 
 	// Loader represents the Loader callback.
 	Loader Loader

@@ -90,9 +90,11 @@ func main() {
 				DestinationTable:      config.Migrations[i].Iterations[j].Target.Table,
 				Parameters:            parameters,
 				Extractor:             migrator.ExtractorMap[config.Migrations[i].Iterations[j].Extractor],
+				ExtractorName:         config.Migrations[i].Iterations[j].Extractor,
 				Transformer:           migrator.TransformerMap[transformer],
 				TransformerParameters: transformerParameters,
 				Loader:                migrator.DefaultLoader,
+				LoaderName:            "default",
 			}
 			migrators[i].Iterations = append(migrators[i].Iterations, iter)
 		}
