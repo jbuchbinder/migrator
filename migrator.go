@@ -305,6 +305,18 @@ func (m *Migrator) Quit() error {
 	return nil
 }
 
+// GetTrackingStatus retrieves the live tracking status for an Iteration from
+// the destination database tracking table
+func (m *Migrator) GetTrackingStatus(iter Iteration) (TrackingStatus, error) {
+	return GetTrackingStatus(m.destinationDb, m.SourceDsn.DBName, iter.SourceTable)
+}
+
+// SerializeTrackingStatus serializes a live tracking status for the current
+// migrator.
+func (m *Migrator) SerializeTrackingStatus(ts TrackingStatus) error {
+	return SerializeTrackingStatus(m.destinationDb, ts)
+}
+
 // ParseDSN parses the given go-sql-driver/mysql datasource name.
 func ParseDSN(name string) apmsql.DSNInfo {
 	cfg, err := mysql.ParseDSN(name)
