@@ -45,6 +45,8 @@ type Migrator struct {
 	wg            *sync.WaitGroup
 }
 
+// Iteration defines the individual sub-migrator configuration which replicates
+// a single table
 type Iteration struct {
 	// DestinationTable defines the table name where data will be pushed
 	// by the Loader.
@@ -87,7 +89,7 @@ func (m *Migrator) SetWaitGroup(wg *sync.WaitGroup) {
 
 // GetWaitGroup returns the wait group instance being used
 func (m Migrator) GetWaitGroup() sync.WaitGroup {
-	return *m.wg
+	return *(m.wg)
 }
 
 // Init initializes the underlying MySQL database connections for the
