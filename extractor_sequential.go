@@ -77,8 +77,15 @@ var ExtractorSequential = func(db *sql.DB, dbName, tableName string, ts Tracking
 			rowData.Data[cols[i]] = values[i]
 		}
 		data = append(data, rowData)
-		minSeq = int64min(minSeq, rowData.Data[ts.ColumnName].(int64))
-		maxSeq = int64max(maxSeq, rowData.Data[ts.ColumnName].(int64))
+
+		// Sanity check the column before committing to avoid panics during casting
+		seqno, ok := rowData.Data[ts.ColumnName].(int64)
+		if !ok {
+			log.Printf(tag+"ERROR: Unable to process table %s due to column %s not being an integer", dbName+"."+tableName, ts.ColumnName)
+			return false, data, ts, nil
+		}
+		minSeq = int64min(minSeq, seqno)
+		maxSeq = int64max(maxSeq, seqno)
 	}
 
 	log.Printf(tag+"Duration to extract %d rows: %s", dataCount, time.Since(tsStart).String())

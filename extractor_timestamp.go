@@ -68,7 +68,13 @@ var ExtractorTimestamp = func(db *sql.DB, dbName, tableName string, ts TrackingS
 			rowData.Data[cols[i]] = values[i]
 		}
 		data = append(data, rowData)
-		maxStamp = timemax(maxStamp, rowData.Data[ts.ColumnName].(time.Time))
+
+		timestamp, ok := rowData.Data[ts.ColumnName].(time.Time)
+		if !ok {
+			log.Printf(tag+"ERROR: Unable to process table %s due to column %s not being a Time", dbName+"."+tableName, ts.ColumnName)
+			return false, data, ts, err
+		}
+		maxStamp = timemax(maxStamp, timestamp)
 	}
 
 	log.Printf(tag+"Duration to extract %d rows: %s", dataCount, time.Since(tsStart).String())
