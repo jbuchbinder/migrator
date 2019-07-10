@@ -49,8 +49,8 @@ var DefaultLoader = func(db *sql.DB, tables []TableData, params *Parameters) err
 				break
 
 			default:
-				log.Printf(tag+"Unknown method '%s' present, falling back on INSERT", method)
-				err = BatchedInsert(tx, table.TableName, rowsByMethod[method], size, params)
+				log.Printf(tag+"Unknown method '%s' present, falling back on REPLACE", method)
+				err = BatchedReplace(tx, table.TableName, rowsByMethod[method], size, params)
 				break
 			}
 			if err != nil {
