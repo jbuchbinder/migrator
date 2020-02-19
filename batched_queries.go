@@ -66,6 +66,7 @@ func BatchedRemove(tx *sql.Tx, table string, data []SQLUntypedRow, size int, par
 		// Attempt to execute
 		_, err := tx.Exec(prepared.String(), params...)
 		if err != nil {
+			log.Printf("BatchedRemove(): ERROR: %s", err.Error())
 			return err
 		}
 	}
@@ -136,8 +137,14 @@ func BatchedQuery(tx *sql.Tx, table string, data []SQLUntypedRow, size int, op s
 		}
 
 		// Attempt to execute
-		_, err := tx.Exec(prepared.String(), params...)
+		res, err := tx.Exec(prepared.String(), params...)
+		if debug {
+			lastInsertID, _ := res.LastInsertId()
+			rowsAffected, _ := res.RowsAffected()
+			log.Printf("BatchedQuery(): last id inserted = %d, rows affected = %d", lastInsertID, rowsAffected)
+		}
 		if err != nil {
+			log.Printf("BatchedQuery(): ERROR: %s", err.Error())
 			return err
 		}
 	}
