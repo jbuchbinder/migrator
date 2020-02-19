@@ -1,4 +1,4 @@
-# jsonschema v2.0.0
+# jsonschema v2.2.0
 
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 [![GoDoc](https://godoc.org/github.com/santhosh-tekuri/jsonschema?status.svg)](https://godoc.org/github.com/santhosh-tekuri/jsonschema)
@@ -47,7 +47,7 @@ This package supports loading json-schema from filePath and fileURL.
 To load json-schema from HTTPURL, add following import:
 
 ```go
-import _ "github.com/santhosh-tekuri/jsonschema/httploader"
+import _ "github.com/santhosh-tekuri/jsonschema/v2/httploader"
 ```
 
 Loading from urls for other schemes (such as ftp), can be plugged in. see package jsonschema/httploader
@@ -136,6 +136,10 @@ I[#] S[#] doesn't validate with "schema.json#"
 Here `I` stands for instance document and `S` stands for schema document.  
 The json-fragments that caused error in instance and schema documents are represented using json-pointer notation.  
 Nested causes are printed with indent.
+
+## Custom Extensions
+
+Custom Extensions can be registered as shown in `extension_test.go`
 
 ## CLI
 

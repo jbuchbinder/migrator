@@ -10,15 +10,15 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:2734f64badcd6ff46a23ef1864621a0c42b694c91383dc18c6b375bfe1fe9984"
+  digest = "1:3e41a2c057d4b6d5acb8dde27f881e338408de08880cfc6f1a4eea8b085b0eab"
   name = "github.com/beeker1121/goque"
   packages = ["."]
   pruneopts = "UT"
-  revision = "e1e63ca63c14b41209e160f54c8e7669564eacc4"
-  version = "v2.0.1"
+  revision = "d618510128aff49b39efd28bd1c72a18ad563e94"
+  version = "v2.1.1"
 
 [[projects]]
-  digest = "1:730ccdc4205aca926fe0abbc9994f7da1c880cd12f1c78b397ea8d2898057b2e"
+  digest = "1:96f3c9624f041706c3e35d2b7e7aa4931e394a6125ab2c5da8b99ff7c2e4723c"
   name = "github.com/elastic/go-sysinfo"
   packages = [
     ".",
@@ -30,24 +30,24 @@
     "types",
   ]
   pruneopts = "UT"
-  revision = "8e0e854621d7e11462d5379fe90d004214482e73"
-  version = "v1.0.1"
+  revision = "b719bc42e40963c707571af208683a049e61f07f"
+  version = "v1.3.0"
 
 [[projects]]
-  digest = "1:5fd69478ead8ea1e30701e4aca2d7a14c97419dd1fd495e4fbb730495c61ea31"
+  digest = "1:1ccb0a9b1971646dcaa9537cce0423a14aaf0643311abb8da753cd59372915d5"
   name = "github.com/elastic/go-windows"
   packages = ["."]
   pruneopts = "UT"
-  revision = "4fe172db2494b71a5b0d1de5a0248e543d7249f4"
-  version = "v1.0.0"
+  revision = "8c929792e70203792e3baf128c380e28754ae8b5"
+  version = "v1.0.1"
 
 [[projects]]
-  digest = "1:ec6f9bf5e274c833c911923c9193867f3f18788c461f76f05f62bb1510e0ae65"
+  digest = "1:a3af33fd30536d9c5a7b6ad542390919e57c1125097a194c7b3d9904109a0611"
   name = "github.com/go-sql-driver/mysql"
   packages = ["."]
   pruneopts = "UT"
-  revision = "72cd26f257d44c1114970e19afddcd812016007e"
-  version = "v1.4.1"
+  revision = "17ef3dd9d98b69acec3e85878995ada9533a9370"
+  version = "v1.5.0"
 
 [[projects]]
   digest = "1:e4f5819333ac698d294fe04dbf640f84719658d5c7ce195b10060cc37292ce79"
@@ -66,31 +66,32 @@
   revision = "69b34d4ec901851247ae7e77d33909caf9df99ed"
 
 [[projects]]
-  digest = "1:cf31692c14422fa27c83a05292eb5cbe0fb2775972e8f1f8446a71549bd8980b"
+  digest = "1:9e1d37b58d17113ec3cb5608ac0382313c5b59470b94ed97d0976e69c7022314"
   name = "github.com/pkg/errors"
   packages = ["."]
   pruneopts = "UT"
-  revision = "ba968bfe8b2f7e042a574c888954fccecfa385b4"
-  version = "v0.8.1"
+  revision = "614d223910a179a466c1767a985424175c39b465"
+  version = "v0.9.1"
 
 [[projects]]
-  digest = "1:366f5aa02ff6c1e2eccce9ca03a22a6d983da89eecff8a89965401764534eb7c"
+  digest = "1:6421995dc4b0cae1fc87b615c1b7eb22e87a6746b5ac1f73221879bd2f1f4fc1"
   name = "github.com/prometheus/procfs"
   packages = [
     ".",
     "internal/fs",
+    "internal/util",
   ]
   pruneopts = "UT"
-  revision = "3f98efb27840a48a7a2898ec80be07674d19f9c8"
-  version = "v0.0.3"
+  revision = "4850c197847aa06aecc37570077fc16e9215d565"
+  version = "v0.0.10"
 
 [[projects]]
-  digest = "1:4866f29a95bf167c00034afe8ea572878ef0f6312c1c6b1f5e96723ebec947fa"
+  digest = "1:7146d5b587395e3db90e8ed497d138fd0fb04d7e0739e3de60119bbbf6cc78f7"
   name = "github.com/santhosh-tekuri/jsonschema"
   packages = ["."]
   pruneopts = "UT"
-  revision = "277e64737671dcd84a8b23a6b9d9e7b392502e51"
-  version = "v2.0.1"
+  revision = "137f44a49015e5060a447c331aa37de6e0f50267"
+  version = "v2.2.0"
 
 [[projects]]
   digest = "1:5b180f17d5bc50b765f4dcf0d126c72979531cbbd7f7929bf3edd87fb801ea2d"
@@ -114,11 +115,11 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:d9c6ada92b738c0c5fa21914a4190e40c4e6100ea519d688b97cd3f4e32faaf6"
+  digest = "1:b53cfa2b4cd490a32c8bc0c2fd3fc46cae1f31221449333547f402f2b9f593c3"
   name = "go.elastic.co/apm"
   packages = [
     ".",
-    "internal/apmconfig",
+    "apmconfig",
     "internal/apmcontext",
     "internal/apmhostutil",
     "internal/apmhttputil",
@@ -126,6 +127,7 @@
     "internal/apmschema",
     "internal/apmstrings",
     "internal/apmversion",
+    "internal/configutil",
     "internal/iochan",
     "internal/pkgerrorsutil",
     "internal/ringbuffer",
@@ -138,8 +140,8 @@
     "transport",
   ]
   pruneopts = "UT"
-  revision = "c497b72e76dcd8d846c3935be0883004b81ecb72"
-  version = "v1.4.0"
+  revision = "bd04e1a7f15b96a6756b235a76645d7e10da5f99"
+  version = "v1.7.0"
 
 [[projects]]
   digest = "1:48734c7f94880e24ce5e530e904223bfb70ac4802530f9a35fdb140bfefda2f3"
@@ -151,7 +153,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:2c770d8251a8a2127b648f57602d75c8e40457ba070b57b38176013472f31326"
+  digest = "1:0fd0b9bf6a7b4505085a2e305fe03e3394aa4d5045beac83e948883a0c914fdc"
   name = "golang.org/x/sys"
   packages = [
     "unix",
@@ -159,23 +161,15 @@
     "windows/registry",
   ]
   pruneopts = "UT"
-  revision = "04f50cda93cbb67f2afa353c52f342100e80e625"
+  revision = "12a6c2dcc1e4cb348b57847c73987099e261714b"
 
 [[projects]]
-  digest = "1:c25289f43ac4a68d88b02245742347c94f1e108c534dda442188015ff80669b3"
-  name = "google.golang.org/appengine"
-  packages = ["cloudsql"]
-  pruneopts = "UT"
-  revision = "b2f4a3cf3c67576a2ee09e1fe62656a5086ce880"
-  version = "v1.6.1"
-
-[[projects]]
-  digest = "1:4d2e5a73dc1500038e504a8d78b986630e3626dc027bc030ba5c75da257cdb96"
+  digest = "1:55b110c99c5fdc4f14930747326acce56b52cfce60b24b1c03ef686ac0e46bb1"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
   pruneopts = "UT"
-  revision = "51d6538a90f86fe93ac480b35f37b2be17fef232"
-  version = "v2.2.2"
+  revision = "53403b58ad1b561927d19068c655246f2db79d48"
+  version = "v2.2.8"
 
 [[projects]]
   branch = "master"

@@ -66,6 +66,13 @@ func (c *conn) startStmtSpan(ctx context.Context, stmt, spanType string) (*apm.S
 func (c *conn) startSpan(ctx context.Context, name, spanType, stmt string) (*apm.Span, context.Context) {
 	span, ctx := apm.StartSpan(ctx, name, spanType)
 	if !span.Dropped() {
+		if c.dsnInfo.Address != "" {
+			span.Context.SetDestinationAddress(c.dsnInfo.Address, c.dsnInfo.Port)
+			span.Context.SetDestinationService(apm.DestinationServiceSpanContext{
+				Name:     c.driver.driverName,
+				Resource: c.driver.driverName,
+			})
+		}
 		span.Context.SetDatabase(apm.DatabaseSpanContext{
 			Instance:  c.dsnInfo.Database,
 			Statement: stmt,
@@ -76,7 +83,7 @@ func (c *conn) startSpan(ctx context.Context, name, spanType, stmt string) (*apm
 	return span, ctx
 }
 
-func (c *conn) finishSpan(ctx context.Context, span *apm.Span, resultError *error) {
+func (c *conn) finishSpan(ctx context.Context, span *apm.Span, result *driver.Result, resultError *error) {
 	if *resultError == driver.ErrSkip {
 		// TODO(axw) mark span as abandoned,
 		// so it's not sent and not counted
@@ -86,7 +93,14 @@ func (c *conn) finishSpan(ctx context.Context, span *apm.Span, resultError *erro
 		return
 	}
 	switch *resultError {
-	case nil, driver.ErrBadConn, context.Canceled:
+	case nil:
+		if !span.Dropped() && result != nil && *result != nil && *result != driver.ResultNoRows {
+			rowsAffected, err := (*result).RowsAffected()
+			if err == nil && rowsAffected >= 0 {
+				span.Context.SetDatabaseRowsAffected(rowsAffected)
+			}
+		}
+	case driver.ErrBadConn, context.Canceled:
 		// ErrBadConn is used by the connection pooling
 		// logic in database/sql, and so is expected and
 		// should not be reported.
@@ -106,7 +120,7 @@ func (c *conn) Ping(ctx context.Context) (resultError error) {
 		return nil
 	}
 	span, ctx := c.startSpan(ctx, "ping", c.driver.pingSpanType, "")
-	defer c.finishSpan(ctx, span, &resultError)
+	defer c.finishSpan(ctx, span, nil, &resultError)
 	return c.pinger.Ping(ctx)
 }
 
@@ -115,7 +129,7 @@ func (c *conn) QueryContext(ctx context.Context, query string, args []driver.Nam
 		return nil, driver.ErrSkip
 	}
 	span, ctx := c.startStmtSpan(ctx, query, c.driver.querySpanType)
-	defer c.finishSpan(ctx, span, &resultError)
+	defer c.finishSpan(ctx, span, nil, &resultError)
 
 	if c.queryerContext != nil {
 		return c.queryerContext.QueryContext(ctx, query, args)
@@ -138,7 +152,7 @@ func (*conn) Query(query string, args []driver.Value) (driver.Rows, error) {
 
 func (c *conn) PrepareContext(ctx context.Context, query string) (_ driver.Stmt, resultError error) {
 	span, ctx := c.startStmtSpan(ctx, query, c.driver.prepareSpanType)
-	defer c.finishSpan(ctx, span, &resultError)
+	defer c.finishSpan(ctx, span, nil, &resultError)
 	var stmt driver.Stmt
 	var err error
 	if c.connPrepareContext != nil {
@@ -160,12 +174,12 @@ func (c *conn) PrepareContext(ctx context.Context, query string) (_ driver.Stmt,
 	return stmt, err
 }
 
-func (c *conn) ExecContext(ctx context.Context, query string, args []driver.NamedValue) (_ driver.Result, resultError error) {
+func (c *conn) ExecContext(ctx context.Context, query string, args []driver.NamedValue) (result driver.Result, resultError error) {
 	if c.execerContext == nil && c.execer == nil {
 		return nil, driver.ErrSkip
 	}
 	span, ctx := c.startStmtSpan(ctx, query, c.driver.execSpanType)
-	defer c.finishSpan(ctx, span, &resultError)
+	defer c.finishSpan(ctx, span, &result, &resultError)
 
 	if c.execerContext != nil {
 		return c.execerContext.ExecContext(ctx, query, args)

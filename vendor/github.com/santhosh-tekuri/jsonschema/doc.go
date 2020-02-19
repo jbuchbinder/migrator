@@ -37,7 +37,7 @@ This package supports loading json-schema from filePath and fileURL.
 
 To load json-schema from HTTPURL, add following import:
 
-	import _ "github.com/santhosh-tekuri/jsonschema/httploader"
+	import _ "github.com/santhosh-tekuri/jsonschema/v2/httploader"
 
 Loading from urls for other schemes (such as ftp), can be plugged in. see package jsonschema/httploader
 for an example
@@ -72,6 +72,8 @@ adding them to jsonschema.Formats map.
 "application/json" contentMediaType is supported. Custom mediatypes can be registered by adding them to jsonschema.MediaTypes map.
 
 The ValidationError returned by Validate method contains detailed context to understand why and where the error is.
+
+Custom Extensions can be registered as shown in extension_test.go
 
 */
 package jsonschema

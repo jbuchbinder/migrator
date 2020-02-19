@@ -62,8 +62,13 @@ func (ve *ValidationError) add(causes ...error) error {
 	return ve
 }
 
+// MessageFmt returns the Message formatted, but does not include child Cause messages.
+func (ve *ValidationError) MessageFmt() string {
+	return fmt.Sprintf("I[%s] S[%s] %s", ve.InstancePtr, ve.SchemaPtr, ve.Message)
+}
+
 func (ve *ValidationError) Error() string {
-	msg := fmt.Sprintf("I[%s] S[%s] %s", ve.InstancePtr, ve.SchemaPtr, ve.Message)
+	msg := ve.MessageFmt()
 	for _, c := range ve.Causes {
 		for _, line := range strings.Split(c.Error(), "\n") {
 			msg += "\n  " + line
@@ -92,7 +97,7 @@ func finishSchemaContext(err error, s *Schema) {
 	ve := err.(*ValidationError)
 	if len(ve.SchemaURL) == 0 {
 		ve.SchemaURL = s.URL
-		ve.SchemaPtr = s.Ptr + "/" + ve.SchemaPtr
+		ve.SchemaPtr = joinPtr(s.Ptr, ve.SchemaPtr)
 		for _, cause := range ve.Causes {
 			finishSchemaContext(cause, s)
 		}

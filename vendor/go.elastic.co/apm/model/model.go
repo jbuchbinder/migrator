@@ -49,6 +49,9 @@ type Service struct {
 	// Runtime holds information about the programming language runtime
 	// running this service.
 	Runtime *Runtime `json:"runtime,omitempty"`
+
+	// Node holds unique information about each service node
+	Node *ServiceNode `json:"node,omitempty"`
 }
 
 // Agent holds information about the Elastic APM agent.
@@ -86,6 +89,12 @@ type Runtime struct {
 
 	// Version is the version of the programming language runtime.
 	Version string `json:"version"`
+}
+
+// ServiceNode holds unique information about each service node
+type ServiceNode struct {
+	// ConfiguredName holds the name of the service node
+	ConfiguredName string `json:"configured_name,omitempty"`
 }
 
 // System represents the system (operating system and machine) running the
@@ -254,6 +263,9 @@ type Span struct {
 
 // SpanContext holds contextual information relating to the span.
 type SpanContext struct {
+	// Destination holds information about a destination service.
+	Destination *DestinationSpanContext `json:"destination,omitempty"`
+
 	// Database holds contextual information for database
 	// operation spans.
 	Database *DatabaseSpanContext `json:"db,omitempty"`
@@ -262,7 +274,35 @@ type SpanContext struct {
 	HTTP *HTTPSpanContext `json:"http,omitempty"`
 
 	// Tags holds user-defined key/value pairs.
-	Tags StringMap `json:"tags,omitempty"`
+	Tags IfaceMap `json:"tags,omitempty"`
+}
+
+// DestinationSpanContext holds contextual information about the destination
+// for a span that relates to an operation involving an external service.
+type DestinationSpanContext struct {
+	// Address holds the network address of the destination service.
+	// This may be a hostname, FQDN, or (IPv4 or IPv6) network address.
+	Address string `json:"address,omitempty"`
+
+	// Port holds the network port for the destination service.
+	Port int `json:"port,omitempty"`
+
+	// Service holds additional destination service context.
+	Service *DestinationServiceSpanContext `json:"service,omitempty"`
+}
+
+// DestinationServiceSpanContext holds contextual information about a
+// destination service,.
+type DestinationServiceSpanContext struct {
+	// Type holds the destination service type.
+	Type string `json:"type,omitempty"`
+
+	// Name holds the destination service name.
+	Name string `json:"name,omitempty"`
+
+	// Resource identifies the destination service
+	// resource, e.g. a URI or message queue name.
+	Resource string `json:"resource,omitempty"`
 }
 
 // DatabaseSpanContext holds contextual information for database
@@ -273,6 +313,10 @@ type DatabaseSpanContext struct {
 
 	// Statement holds the database statement (e.g. query).
 	Statement string `json:"statement,omitempty"`
+
+	// RowsAffected holds the number of rows affected by the
+	// database operation.
+	RowsAffected *int64 `json:"rows_affected,omitempty"`
 
 	// Type holds the database type. For any SQL database,
 	// this should be "sql"; for others, the lower-cased
@@ -294,6 +338,9 @@ type HTTPSpanContext struct {
 
 // Context holds contextual information relating to a transaction or error.
 type Context struct {
+	// Custom holds custom context relating to the transaction or error.
+	Custom IfaceMap `json:"custom,omitempty"`
+
 	// Request holds details of the HTTP request relating to the
 	// transaction or error, if relevant.
 	Request *Request `json:"request,omitempty"`
@@ -307,7 +354,7 @@ type Context struct {
 	User *User `json:"user,omitempty"`
 
 	// Tags holds user-defined key/value pairs.
-	Tags StringMap `json:"tags,omitempty"`
+	Tags IfaceMap `json:"tags,omitempty"`
 
 	// Service holds values to overrides service-level metadata.
 	Service *Service `json:"service,omitempty"`
@@ -393,6 +440,9 @@ type Exception struct {
 
 	// Handled indicates whether or not the error was caught and handled.
 	Handled bool `json:"handled"`
+
+	// Cause holds the causes of this error.
+	Cause []Exception `json:"cause,omitempty"`
 }
 
 // ExceptionCode represents an exception code as either a number or a string.
@@ -582,6 +632,14 @@ type Metrics struct {
 	// Timestamp holds the time at which the metric samples were taken.
 	Timestamp Time `json:"timestamp"`
 
+	// Transaction optionally holds the name and type of transactions
+	// with which these metrics are associated.
+	Transaction MetricsTransaction `json:"transaction,omitempty"`
+
+	// Span optionally holds the type and subtype of the spans with
+	// which these metrics are associated.
+	Span MetricsSpan `json:"span,omitempty"`
+
 	// Labels holds a set of labels associated with the metrics.
 	// The labels apply uniformly to all metric samples in the set.
 	//
@@ -592,6 +650,18 @@ type Metrics struct {
 
 	// Samples holds a map of metric samples, keyed by metric name.
 	Samples map[string]Metric `json:"samples"`
+}
+
+// MetricsTransaction holds transaction identifiers for metrics.
+type MetricsTransaction struct {
+	Type string `json:"type,omitempty"`
+	Name string `json:"name,omitempty"`
+}
+
+// MetricsSpan holds span identifiers for metrics.
+type MetricsSpan struct {
+	Type    string `json:"type,omitempty"`
+	Subtype string `json:"subtype,omitempty"`
 }
 
 // Metric holds metric values.
