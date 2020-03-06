@@ -79,6 +79,7 @@ func BatchedRemove(tx *sql.Tx, table string, data []SQLUntypedRow, size int, par
 // (transaction) object.
 func BatchedQuery(tx *sql.Tx, table string, data []SQLUntypedRow, size int, op string, params *Parameters) error {
 	debug := paramBool(*params, "Debug", false)
+	lowLevelDebug := paramBool(*params, "LowLevelDebug", false)
 
 	// Pull column names from first row
 	if len(data) < 1 {
@@ -138,6 +139,9 @@ func BatchedQuery(tx *sql.Tx, table string, data []SQLUntypedRow, size int, op s
 
 		// Attempt to execute
 		res, err := tx.Exec(prepared.String(), params...)
+		if lowLevelDebug {
+			log.Printf("BatchedQuery(): %s [%#v]", prepared.String(), params)
+		}
 		if debug {
 			lastInsertID, _ := res.LastInsertId()
 			rowsAffected, _ := res.RowsAffected()
