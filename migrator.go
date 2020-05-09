@@ -36,6 +36,9 @@ type Migrator struct {
 	// ( Extractor, Loader ) in the Migrator.
 	Parameters *Parameters
 
+	// ErrorCallback represents a logging callback for errors
+	ErrorCallback func(map[string]string, error)
+
 	// Internal fields
 
 	sourceDb      *sql.DB
@@ -91,6 +94,11 @@ type Iteration struct {
 // SetWaitGroup sets the wait group instance being used
 func (m *Migrator) SetWaitGroup(wg *sync.WaitGroup) {
 	m.wg = wg
+}
+
+// SetErrorCallback sets the error callback function
+func (m *Migrator) SetErrorCallback(f func(map[string]string, error)) {
+	m.ErrorCallback = f
 }
 
 // GetWaitGroup returns the wait group instance being used
@@ -225,6 +233,13 @@ func (m *Migrator) Run() error {
 				more, rows, newTs, err := m.Iterations[x].Extractor(m.sourceDb, m.SourceDsn.DBName, m.Iterations[x].SourceTable, ts, m.Iterations[x].Parameters)
 				if err != nil {
 					log.Printf(tag + "Extractor: " + err.Error())
+					if m.ErrorCallback != nil {
+						m.ErrorCallback(map[string]string{
+							"Stage":       "Extractor",
+							"SourceDb":    m.SourceDsn.DBName,
+							"SourceTable": m.Iterations[x].SourceTable,
+						}, err)
+					}
 				}
 				if debug {
 					log.Printf(tag+"Extracted %d rows", len(rows))
@@ -242,6 +257,15 @@ func (m *Migrator) Run() error {
 				err = m.Iterations[x].Loader(m.destinationDb, data, m.Iterations[x].Parameters)
 				if err != nil {
 					log.Printf(tag + "Loader: " + err.Error())
+					if m.ErrorCallback != nil {
+						m.ErrorCallback(map[string]string{
+							"Stage":            "Loader",
+							"SourceDb":         m.SourceDsn.DBName,
+							"SourceTable":      m.Iterations[x].SourceTable,
+							"DestinationDb":    m.DestinationDsn.DBName,
+							"DestinationTable": m.Iterations[x].DestinationTable,
+						}, err)
+					}
 				}
 
 				if debug {
