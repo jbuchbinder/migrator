@@ -193,6 +193,16 @@ func (m *Migrator) Init() error {
 	return nil
 }
 
+// sleepWithInterrupt allows a sleep cycle that checks for termination every second
+func (m *Migrator) sleepWithInterrupt(length int) {
+	for i := 0; i <= length; i++ {
+		time.Sleep(time.Second)
+		if m.terminated {
+			return
+		}
+	}
+}
+
 // Run spins off a goroutine with a running migrator until the corresponding
 // Quit() method is called.
 func (m *Migrator) Run() error {
@@ -210,11 +220,24 @@ func (m *Migrator) Run() error {
 		m.wg.Add(1)
 		go func(x int) {
 			// Actual run
-			ts, err := GetTrackingStatus(m.destinationDb, m.SourceDsn.DBName, m.Iterations[x].SourceTable)
-			if err != nil {
-				log.Printf(tag + "GetTrackingStatus: " + err.Error())
-				m.wg.Done()
-				return
+			var ts TrackingStatus
+			var err error
+			var attempt int
+			for {
+				ts, err = GetTrackingStatus(m.destinationDb, m.SourceDsn.DBName, m.Iterations[x].SourceTable)
+				if err != nil {
+					log.Printf(tag+"GetTrackingStatus[Attempt %d]: %s", attempt, err.Error())
+					attempt++
+					m.sleepWithInterrupt(delay)
+					if m.terminated {
+						log.Printf(tag + "Received quit signal")
+						m.Close()
+						m.wg.Done()
+						return
+					}
+					continue
+				}
+				break
 			}
 			if debug {
 				log.Printf(tag + "Entering loop")
@@ -282,15 +305,27 @@ func (m *Migrator) Run() error {
 					if debug {
 						log.Printf(tag+"No more rows detected to process, sleeping for %d sec + random offset", delay)
 					}
-					time.Sleep(time.Second * time.Duration(delay))
+					m.sleepWithInterrupt(delay)
 					time.Sleep(time.Millisecond * (time.Duration(float64(delay*1000) * rand.Float64())))
 
-					ts, err = GetTrackingStatus(m.destinationDb, m.SourceDsn.DBName, m.Iterations[x].SourceTable)
-					if err != nil {
-						log.Printf(tag + "GetTrackingStatus: " + err.Error())
-						m.wg.Done()
-						return
+					attempt = 0
+					for {
+						ts, err = GetTrackingStatus(m.destinationDb, m.SourceDsn.DBName, m.Iterations[x].SourceTable)
+						if err != nil {
+							log.Printf(tag+"GetTrackingStatus[Attempt %d]: %s", attempt, err.Error())
+							attempt++
+							m.sleepWithInterrupt(delay)
+							if m.terminated {
+								log.Printf(tag + "Received quit signal")
+								m.Close()
+								m.wg.Done()
+								return
+							}
+							continue
+						}
+						break
 					}
+
 				}
 
 				// Sleep for 150ms to avoid pileups
