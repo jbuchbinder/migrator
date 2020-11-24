@@ -9,5 +9,5 @@ require (
 	github.com/syndtr/goleveldb v1.0.0 // indirect
 	go.elastic.co/apm/module/apmsql v1.4.0
 	google.golang.org/appengine v1.6.0 // indirect
-	gopkg.in/yaml.v2 v2.2.2
+	gopkg.in/yaml.v2 v2.2.2 // indirect
 )
