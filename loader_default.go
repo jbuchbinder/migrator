@@ -2,8 +2,9 @@ package migrator
 
 import (
 	"database/sql"
-	"log"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // DefaultLoader represents a default Loader instance.

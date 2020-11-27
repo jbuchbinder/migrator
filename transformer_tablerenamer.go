@@ -1,6 +1,6 @@
 package migrator
 
-import "log"
+import log "github.com/sirupsen/logrus"
 
 func init() {
 	TransformerMap["tablerenamer"] = TableRenamerTransformer

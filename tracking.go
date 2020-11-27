@@ -4,8 +4,9 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // TrackingStatus is the table definition for the tracking table which

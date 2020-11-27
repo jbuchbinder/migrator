@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"log"
 	"os"
 	"os/signal"
 	"sync"
@@ -11,6 +10,7 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/jbuchbinder/migrator"
+	log "github.com/sirupsen/logrus"
 )
 
 var (

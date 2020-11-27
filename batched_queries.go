@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"database/sql"
 	"errors"
-	"log"
 	"math"
 	"reflect"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // BatchedInsert takes an array of SQL data rows and creates a series of

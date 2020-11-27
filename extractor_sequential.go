@@ -3,9 +3,10 @@ package migrator
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"math"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 func init() {

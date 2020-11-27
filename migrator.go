@@ -3,12 +3,12 @@ package migrator
 import (
 	"database/sql"
 	"errors"
-	"log"
 	"math/rand"
 	"sync"
 	"time"
 
 	"github.com/go-sql-driver/mysql"
+	log "github.com/sirupsen/logrus"
 	"go.elastic.co/apm/module/apmsql"
 )
 
