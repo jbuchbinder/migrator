@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"strings"
 	"time"
-
-	log "github.com/sirupsen/logrus"
 )
 
 func init() {
@@ -25,7 +23,7 @@ var ExtractorQueue = func(db *sql.DB, dbName, tableName string, ts TrackingStatu
 	moreData := false
 
 	if debug {
-		log.Printf(tag+"Beginning run with params %#v", params)
+		logger.Printf(tag+"Beginning run with params %#v", params)
 	}
 
 	data := make([]SQLRow, 0)
@@ -37,7 +35,7 @@ var ExtractorQueue = func(db *sql.DB, dbName, tableName string, ts TrackingStatu
 	rowsToProcess, err := db.Query("SELECT * FROM `"+RecordQueueTable+"` WHERE sourceDatabase = ? AND sourceTable = ? ORDER BY timestampUpdated LIMIT ?",
 		dbName, tableName, DefaultBatchSize)
 	if err != nil {
-		log.Printf(tag+"Error extracting queue rows: %s", err.Error())
+		logger.Printf(tag+"Error extracting queue rows: %s", err.Error())
 		return false, data, ts, err
 	}
 	dataCount := 0
@@ -52,14 +50,14 @@ var ExtractorQueue = func(db *sql.DB, dbName, tableName string, ts TrackingStatu
 			&(rq.Method),
 		)
 		if err != nil {
-			log.Printf(tag + "Queue Scan: " + err.Error())
+			logger.Printf(tag + "Queue Scan: " + err.Error())
 			return false, data, ts, err
 		}
 
 		// Handle REMOVE -- since we can't actually scan a removed item
 		if rq.Method == "REMOVE" {
 			if debug {
-				log.Printf(tag+"Found REMOVE -- processing : %#v", rq)
+				logger.Printf(tag+"Found REMOVE -- processing : %#v", rq)
 			}
 			rowData := SQLRow{}
 			rowData.Method = "REMOVE"
@@ -102,7 +100,7 @@ var ExtractorQueue = func(db *sql.DB, dbName, tableName string, ts TrackingStatu
 			return false, data, ts, err
 		}
 		if debug {
-			log.Printf(tag+"Columns %v", cols)
+			logger.Printf(tag+"Columns %v", cols)
 		}
 		for rows.Next() {
 			dataCount++
@@ -114,7 +112,7 @@ var ExtractorQueue = func(db *sql.DB, dbName, tableName string, ts TrackingStatu
 
 			err = rows.Scan(scanArgs...)
 			if err != nil {
-				log.Printf(tag + "Scan: " + err.Error())
+				logger.Printf(tag + "Scan: " + err.Error())
 				return false, data, ts, err
 			}
 
@@ -131,32 +129,32 @@ var ExtractorQueue = func(db *sql.DB, dbName, tableName string, ts TrackingStatu
 		}
 		err = rq.Remove()
 		if err != nil {
-			log.Printf(tag+"Error removing record queue entry: %s", err.Error())
+			logger.Printf(tag+"Error removing record queue entry: %s", err.Error())
 		}
 	}
 
-	log.Printf(tag+"Duration to extract %d rows: %s", dataCount, time.Since(tsStart).String())
+	logger.Printf(tag+"Duration to extract %d rows: %s", dataCount, time.Since(tsStart).String())
 
 	if dataCount == 0 {
 		if debug {
-			log.Printf(tag+"Batch size %d, row count %d; indicating no more data", batchSize, dataCount)
+			logger.Printf(tag+"Batch size %d, row count %d; indicating no more data", batchSize, dataCount)
 		}
 		return false, data, ts, nil
 	}
 
 	if dataCount < batchSize {
 		if debug {
-			log.Printf(tag+"Batch size %d, row count %d; indicating no more data", batchSize, dataCount)
+			logger.Printf(tag+"Batch size %d, row count %d; indicating no more data", batchSize, dataCount)
 		}
 		moreData = false
 	} else {
 		if debug {
-			log.Printf(tag+"Batch size %d == row count %d; indicating more data", batchSize, dataCount)
+			logger.Printf(tag+"Batch size %d == row count %d; indicating more data", batchSize, dataCount)
 		}
 		moreData = true
 	}
 
-	//log.Printf(tag+"%s seq value range %d - %d", ts.ColumnName, minSeq, maxSeq)
+	//logger.Printf(tag+"%s seq value range %d - %d", ts.ColumnName, minSeq, maxSeq)
 
 	// Manually copy old tracking object ...
 	newTs := &TrackingStatus{

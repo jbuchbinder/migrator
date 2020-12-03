@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"strings"
 	"time"
-
-	log "github.com/sirupsen/logrus"
 )
 
 func init() {
@@ -24,7 +22,7 @@ var ExtractorTimestampFallback = func(db *sql.DB, dbName, tableName string, ts T
 	moreData := false
 
 	if debug {
-		log.Printf(tag+"Beginning run with params %#v", params)
+		logger.Printf(tag+"Beginning run with params %#v", params)
 	}
 
 	data := make([]SQLRow, 0)
@@ -36,16 +34,16 @@ var ExtractorTimestampFallback = func(db *sql.DB, dbName, tableName string, ts T
 	colnames := strings.Split(ts.ColumnName, ",")
 	if len(colnames) < 2 {
 		err := fmt.Errorf("Requires two columns separated by a comma")
-		log.Printf(tag + "ERR: " + err.Error())
+		logger.Printf(tag + "ERR: " + err.Error())
 		return false, data, ts, err
 	}
 
 	if debug {
-		log.Printf(tag+"Query: \"SELECT * FROM `"+tableName+"` WHERE IFNULL(`"+colnames[0]+"`,`"+colnames[1]+"`) > %v LIMIT %d\"", ts.TimestampPosition, batchSize)
+		logger.Printf(tag+"Query: \"SELECT * FROM `"+tableName+"` WHERE IFNULL(`"+colnames[0]+"`,`"+colnames[1]+"`) > %v LIMIT %d\"", ts.TimestampPosition, batchSize)
 	}
 	rows, err := db.Query("SELECT * FROM `"+tableName+"` WHERE IFNULL(`"+colnames[0]+"`,`"+colnames[1]+"`) > ? LIMIT ?", ts.TimestampPosition, batchSize)
 	if err != nil {
-		log.Printf(tag + "ERR: " + err.Error())
+		logger.Printf(tag + "ERR: " + err.Error())
 		return false, data, ts, err
 	}
 	defer rows.Close()
@@ -54,7 +52,7 @@ var ExtractorTimestampFallback = func(db *sql.DB, dbName, tableName string, ts T
 		return false, data, ts, err
 	}
 	if debug {
-		log.Printf(tag+"Columns %v", cols)
+		logger.Printf(tag+"Columns %v", cols)
 	}
 	dataCount := 0
 	for rows.Next() {
@@ -67,7 +65,7 @@ var ExtractorTimestampFallback = func(db *sql.DB, dbName, tableName string, ts T
 
 		err = rows.Scan(scanArgs...)
 		if err != nil {
-			log.Printf(tag + "Scan: " + err.Error())
+			logger.Printf(tag + "Scan: " + err.Error())
 			return false, data, ts, err
 		}
 
@@ -81,35 +79,35 @@ var ExtractorTimestampFallback = func(db *sql.DB, dbName, tableName string, ts T
 
 		timestamp, ok := rowData.Data[ts.ColumnName].(time.Time)
 		if !ok {
-			log.Printf(tag+"ERROR: Unable to process table %s due to column %s not being a Time", dbName+"."+tableName, ts.ColumnName)
+			logger.Printf(tag+"ERROR: Unable to process table %s due to column %s not being a Time", dbName+"."+tableName, ts.ColumnName)
 			return false, data, ts, err
 		}
 		maxStamp = timemax(maxStamp, timestamp)
 	}
 
-	log.Printf(tag+"Duration to extract %d rows: %s", dataCount, time.Since(tsStart).String())
+	logger.Printf(tag+"Duration to extract %d rows: %s", dataCount, time.Since(tsStart).String())
 
 	if dataCount == 0 {
 		if debug {
-			log.Printf(tag+"Batch size %d, row count %d; indicating no more data", batchSize, dataCount)
+			logger.Printf(tag+"Batch size %d, row count %d; indicating no more data", batchSize, dataCount)
 		}
 		return false, data, ts, nil
 	}
 
 	if dataCount < batchSize {
 		if debug {
-			log.Printf(tag+"Batch size %d, row count %d; indicating no more data", batchSize, dataCount)
+			logger.Printf(tag+"Batch size %d, row count %d; indicating no more data", batchSize, dataCount)
 		}
 		moreData = false
 	} else {
 		if debug {
-			log.Printf(tag+"Batch size %d == row count %d; indicating more data", batchSize, dataCount)
+			logger.Printf(tag+"Batch size %d == row count %d; indicating more data", batchSize, dataCount)
 		}
 		moreData = true
 	}
 
 	if debug {
-		log.Printf(tag+"%s high timestamp value %#v", ts.ColumnName, maxStamp)
+		logger.Printf(tag+"%s high timestamp value %#v", ts.ColumnName, maxStamp)
 	}
 	err = SetTrackingStatusTimestamp(ts.Db, dbName, tableName, maxStamp)
 	// Copy old object ...

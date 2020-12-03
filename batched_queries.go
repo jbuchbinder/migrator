@@ -6,8 +6,6 @@ import (
 	"errors"
 	"math"
 	"reflect"
-
-	log "github.com/sirupsen/logrus"
 )
 
 // BatchedInsert takes an array of SQL data rows and creates a series of
@@ -61,13 +59,13 @@ func BatchedRemove(tx *sql.Tx, table string, data []SQLUntypedRow, size int, par
 		prepared.WriteString(";")
 
 		if debug {
-			log.Printf("BatchedRemove(): Prepared remove: %s", prepared.String())
+			logger.Printf("BatchedRemove(): Prepared remove: %s", prepared.String())
 		}
 
 		// Attempt to execute
 		_, err := tx.Exec(prepared.String(), params...)
 		if err != nil {
-			log.Printf("BatchedRemove(): ERROR: %s", err.Error())
+			logger.Printf("BatchedRemove(): ERROR: %s", err.Error())
 			return err
 		}
 	}
@@ -135,21 +133,21 @@ func BatchedQuery(tx *sql.Tx, table string, data []SQLUntypedRow, size int, op s
 		prepared.WriteString(";")
 
 		if debug {
-			log.Printf("BatchedQuery(): Prepared %s: %s", op, prepared.String())
+			logger.Printf("BatchedQuery(): Prepared %s: %s", op, prepared.String())
 		}
 
 		// Attempt to execute
 		res, err := tx.Exec(prepared.String(), params...)
 		if lowLevelDebug {
-			log.Printf("BatchedQuery(): %s [%#v]", prepared.String(), params)
+			logger.Printf("BatchedQuery(): %s [%#v]", prepared.String(), params)
 		}
 		if debug {
 			lastInsertID, _ := res.LastInsertId()
 			rowsAffected, _ := res.RowsAffected()
-			log.Printf("BatchedQuery(): last id inserted = %d, rows affected = %d", lastInsertID, rowsAffected)
+			logger.Printf("BatchedQuery(): last id inserted = %d, rows affected = %d", lastInsertID, rowsAffected)
 		}
 		if err != nil {
-			log.Printf("BatchedQuery(): ERROR: %s", err.Error())
+			logger.Printf("BatchedQuery(): ERROR: %s", err.Error())
 			return err
 		}
 	}

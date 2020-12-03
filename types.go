@@ -22,12 +22,12 @@ var (
 	RecordQueueTable = "MigratorRecordQueue"
 )
 
-// SqlUntypedRow represents a single row of SQL data which is not strongly
+// SQLUntypedRow represents a single row of SQL data which is not strongly
 // typed to a structure. This obviates the need to create Golang-level language
 // structures to represent tables.
 type SQLUntypedRow map[string]interface{}
 
-// SqlRow represents a single row of SQL data with an action associated with it
+// SQLRow represents a single row of SQL data with an action associated with it
 type SQLRow struct {
 	Data   SQLUntypedRow
 	Method string

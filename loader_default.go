@@ -3,8 +3,6 @@ package migrator
 import (
 	"database/sql"
 	"time"
-
-	log "github.com/sirupsen/logrus"
 )
 
 // DefaultLoader represents a default Loader instance.
@@ -28,47 +26,47 @@ var DefaultLoader = func(db *sql.DB, tables []TableData, params *Parameters) err
 		}
 
 		for method := range rowsByMethod {
-			log.Printf(tag+"Beginning transaction, InsertBatchSize == %d", size)
+			logger.Printf(tag+"Beginning transaction, InsertBatchSize == %d", size)
 			tx, err := db.Begin()
 			if err != nil {
-				log.Printf(tag + "Transaction start: " + err.Error())
+				logger.Printf(tag + "Transaction start: " + err.Error())
 				return err
 			}
 			switch method {
 			case "REPLACE":
-				log.Printf(tag + "Method REPLACE")
+				logger.Printf(tag + "Method REPLACE")
 				err = BatchedReplace(tx, table.TableName, rowsByMethod[method], size, params)
 
 			case "INSERT":
-				log.Printf(tag + "Method INSERT")
+				logger.Printf(tag + "Method INSERT")
 				err = BatchedInsert(tx, table.TableName, rowsByMethod[method], size, params)
 				break
 
 			case "REMOVE":
-				log.Printf(tag + "Method REMOVE")
+				logger.Printf(tag + "Method REMOVE")
 				err = BatchedRemove(tx, table.TableName, rowsByMethod[method], size, params)
 				break
 
 			default:
-				log.Printf(tag+"Unknown method '%s' present, falling back on REPLACE", method)
+				logger.Printf(tag+"Unknown method '%s' present, falling back on REPLACE", method)
 				err = BatchedReplace(tx, table.TableName, rowsByMethod[method], size, params)
 				break
 			}
 			if err != nil {
-				log.Printf(tag + "Rolling back transaction")
+				logger.Printf(tag + "Rolling back transaction")
 				err2 := tx.Rollback()
 				if err2 != nil {
-					log.Printf(tag + "Error during rollback: " + err2.Error())
+					logger.Printf(tag + "Error during rollback: " + err2.Error())
 				}
 				return err
 			}
 
-			log.Printf(tag+"Duration to insert %d rows: %s", len(table.Data), time.Since(tsStart).String())
+			logger.Printf(tag+"Duration to insert %d rows: %s", len(table.Data), time.Since(tsStart).String())
 
-			log.Printf(tag + "Committing transaction")
+			logger.Printf(tag + "Committing transaction")
 			err = tx.Commit()
 			if err != nil {
-				log.Printf(tag + "Error during commit: " + err.Error())
+				logger.Printf(tag + "Error during commit: " + err.Error())
 			}
 		}
 	}

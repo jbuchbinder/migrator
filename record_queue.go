@@ -33,6 +33,7 @@ func (t RecordQueue) Remove() error {
 	return err
 }
 
+// RemoveRecordQueueItem removes an item from the record queue
 func RemoveRecordQueueItem(db *sql.DB, sourceDatabase, sourceTable, pkColumn, pkValue string) error {
 	_, err := db.Exec("DELETE FROM `"+RecordQueueTable+"` WHERE sourceDatabase = ? AND sourceTable = ? AND pkColumn = ? AND pkValue = ?",
 		sourceDatabase, sourceTable, pkColumn, pkValue)

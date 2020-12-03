@@ -12,6 +12,16 @@ import (
 	"go.elastic.co/apm/module/apmsql"
 )
 
+var (
+	// logger represents the logger used by the migrator.
+	logger log.Logger
+)
+
+// SetLogger sets a logrus Logger object used by the migrator
+func SetLogger(l log.Logger) {
+	logger = l
+}
+
 // Migrator represents an object which encompasses an entire end-to-end
 // ETL process.
 type Migrator struct {
@@ -112,7 +122,7 @@ func (m *Migrator) Init() error {
 	tag := "Migrator.Init(): [" + m.SourceDsn.FormatDSN() + "] "
 
 	var err error
-	log.Printf(tag + "Initializing migrator")
+	logger.Printf(tag + "Initializing migrator")
 
 	if m.SourceDsn == nil || m.DestinationDsn == nil {
 		return errors.New(tag + "No source or destination DSN set")
@@ -126,9 +136,9 @@ func (m *Migrator) Init() error {
 	m.SourceDsn.ParseTime = true
 	m.DestinationDsn.ParseTime = true
 
-	log.Printf(tag+"Using source dsn: %s", m.SourceDsn.FormatDSN())
+	logger.Printf(tag+"Using source dsn: %s", m.SourceDsn.FormatDSN())
 	if m.Apm {
-		log.Printf(tag+"Reporting APM stats for %s", m.SourceDsn.FormatDSN())
+		logger.Printf(tag+"Reporting APM stats for %s", m.SourceDsn.FormatDSN())
 		m.sourceDb, err = apmsql.Open("apmmysql", m.SourceDsn.FormatDSN())
 	} else {
 		m.sourceDb, err = sql.Open("mysql", m.SourceDsn.FormatDSN())
@@ -139,9 +149,9 @@ func (m *Migrator) Init() error {
 	m.sourceDb.SetMaxIdleConns(0)
 	m.sourceDb.SetMaxOpenConns(len(m.Iterations) * 3)
 
-	log.Printf(tag+"Using destination dsn: %s", m.DestinationDsn.FormatDSN())
+	logger.Printf(tag+"Using destination dsn: %s", m.DestinationDsn.FormatDSN())
 	if m.Apm {
-		log.Printf(tag+"Reporting APM stats for %s", m.DestinationDsn.FormatDSN())
+		logger.Printf(tag+"Reporting APM stats for %s", m.DestinationDsn.FormatDSN())
 		m.destinationDb, err = apmsql.Open("apmmysql", m.DestinationDsn.FormatDSN())
 	} else {
 		m.destinationDb, err = sql.Open("mysql", m.DestinationDsn.FormatDSN())
@@ -161,13 +171,13 @@ func (m *Migrator) Init() error {
 
 		// Attempt to make sure there is a tracking table and status entry
 
-		log.Printf(tag + "Ensuring that tracking table exists")
+		logger.Printf(tag + "Ensuring that tracking table exists")
 		err = CreateTrackingTable(m.destinationDb)
 		if err != nil {
 			return err
 		}
 
-		log.Printf(tag+"Getting tracking table status for %s.%s", m.SourceDsn.DBName, m.Iterations[x].SourceTable)
+		logger.Printf(tag+"Getting tracking table status for %s.%s", m.SourceDsn.DBName, m.Iterations[x].SourceTable)
 		_, err = GetTrackingStatus(m.destinationDb, m.SourceDsn.DBName, m.Iterations[x].SourceTable)
 		if err != nil {
 			tt := TrackingStatus{
@@ -179,10 +189,10 @@ func (m *Migrator) Init() error {
 				TimestampPosition:  NullTime{},
 				LastRun:            NullTimeNow(),
 			}
-			log.Printf(tag+"Creating tracking table entry, as none exists: %#v", tt)
+			logger.Printf(tag+"Creating tracking table entry, as none exists: %#v", tt)
 			err := SerializeNewTrackingStatus(tt)
 			if err != nil {
-				log.Printf(tag+"TrackingStatus: %#v", tt)
+				logger.Printf(tag+"TrackingStatus: %#v", tt)
 				return err
 			}
 		}
@@ -226,11 +236,11 @@ func (m *Migrator) Run() error {
 			for {
 				ts, err = GetTrackingStatus(m.destinationDb, m.SourceDsn.DBName, m.Iterations[x].SourceTable)
 				if err != nil {
-					log.Printf(tag+"GetTrackingStatus[Attempt %d]: %s", attempt, err.Error())
+					logger.Printf(tag+"GetTrackingStatus[Attempt %d]: %s", attempt, err.Error())
 					attempt++
 					m.sleepWithInterrupt(delay)
 					if m.terminated {
-						log.Printf(tag + "Received quit signal")
+						logger.Printf(tag + "Received quit signal")
 						m.Close()
 						m.wg.Done()
 						return
@@ -240,22 +250,22 @@ func (m *Migrator) Run() error {
 				break
 			}
 			if debug {
-				log.Printf(tag + "Entering loop")
+				logger.Printf(tag + "Entering loop")
 			}
 			for {
 				if m.terminated {
-					log.Printf(tag + "Received quit signal")
+					logger.Printf(tag + "Received quit signal")
 					m.Close()
 					m.wg.Done()
 					return
 				}
 				if debug {
-					log.Printf(tag+"TrackingStatus: %s", ts.String())
+					logger.Printf(tag+"TrackingStatus: %s", ts.String())
 				}
 
 				more, rows, newTs, err := m.Iterations[x].Extractor(m.sourceDb, m.SourceDsn.DBName, m.Iterations[x].SourceTable, ts, m.Iterations[x].Parameters)
 				if err != nil {
-					log.Printf(tag + "Extractor: " + err.Error())
+					logger.Printf(tag + "Extractor: " + err.Error())
 					if m.ErrorCallback != nil {
 						m.ErrorCallback(map[string]string{
 							"Stage":       "Extractor",
@@ -265,21 +275,21 @@ func (m *Migrator) Run() error {
 					}
 				}
 				if debug {
-					log.Printf(tag+"Extracted %d rows", len(rows))
+					logger.Printf(tag+"Extracted %d rows", len(rows))
 				}
 
 				if debug {
-					log.Printf(tag+"Running transformer for %s.%s", m.SourceDsn.DBName, m.Iterations[x].SourceTable)
-					log.Printf(tag+"Transformer %#v (%s,%s,%#v,%#v)", m.Iterations[x].Transformer, m.DestinationDsn.DBName, m.Iterations[x].DestinationTable, rows, m.Iterations[x].TransformerParameters)
+					logger.Printf(tag+"Running transformer for %s.%s", m.SourceDsn.DBName, m.Iterations[x].SourceTable)
+					logger.Printf(tag+"Transformer %#v (%s,%s,%#v,%#v)", m.Iterations[x].Transformer, m.DestinationDsn.DBName, m.Iterations[x].DestinationTable, rows, m.Iterations[x].TransformerParameters)
 				}
 				data := m.Iterations[x].Transformer(m.DestinationDsn.DBName, m.Iterations[x].DestinationTable, rows, m.Iterations[x].TransformerParameters)
 				if debug {
-					log.Printf(tag+"Transformer put out %#v for data", data)
-					log.Printf(tag+"Running loader for %s.%s", m.SourceDsn.DBName, m.Iterations[x].SourceTable)
+					logger.Printf(tag+"Transformer put out %#v for data", data)
+					logger.Printf(tag+"Running loader for %s.%s", m.SourceDsn.DBName, m.Iterations[x].SourceTable)
 				}
 				err = m.Iterations[x].Loader(m.destinationDb, data, m.Iterations[x].Parameters)
 				if err != nil {
-					log.Printf(tag + "Loader: " + err.Error())
+					logger.Printf(tag + "Loader: " + err.Error())
 					if m.ErrorCallback != nil {
 						m.ErrorCallback(map[string]string{
 							"Stage":            "Loader",
@@ -292,18 +302,18 @@ func (m *Migrator) Run() error {
 				}
 
 				if debug {
-					log.Printf(tag + "Tracking: Updating table")
+					logger.Printf(tag + "Tracking: Updating table")
 				}
 				err = SerializeTrackingStatus(m.destinationDb, newTs)
 				if err != nil {
-					log.Printf(tag + "Tracking: " + err.Error())
+					logger.Printf(tag + "Tracking: " + err.Error())
 				}
 
 				ts = newTs
 
 				if !more {
 					if debug {
-						log.Printf(tag+"No more rows detected to process, sleeping for %d sec + random offset", delay)
+						logger.Printf(tag+"No more rows detected to process, sleeping for %d sec + random offset", delay)
 					}
 					m.sleepWithInterrupt(delay)
 					time.Sleep(time.Millisecond * (time.Duration(float64(delay*1000) * rand.Float64())))
@@ -312,11 +322,11 @@ func (m *Migrator) Run() error {
 					for {
 						ts, err = GetTrackingStatus(m.destinationDb, m.SourceDsn.DBName, m.Iterations[x].SourceTable)
 						if err != nil {
-							log.Printf(tag+"GetTrackingStatus[Attempt %d]: %s", attempt, err.Error())
+							logger.Printf(tag+"GetTrackingStatus[Attempt %d]: %s", attempt, err.Error())
 							attempt++
 							m.sleepWithInterrupt(delay)
 							if m.terminated {
-								log.Printf(tag + "Received quit signal")
+								logger.Printf(tag + "Received quit signal")
 								m.Close()
 								m.wg.Done()
 								return
@@ -343,13 +353,13 @@ func (m *Migrator) Run() error {
 func (m *Migrator) Close() {
 	tag := "Migrator.Close(): [" + m.SourceDsn.DBName + "] "
 
-	log.Printf(tag + "Closing connections")
+	logger.Printf(tag + "Closing connections")
 	if m.sourceDb != nil {
-		log.Printf(tag + "Closing source db connection")
+		logger.Printf(tag + "Closing source db connection")
 		m.sourceDb.Close()
 	}
 	if m.destinationDb != nil {
-		log.Printf(tag + "Closing destination db connection")
+		logger.Printf(tag + "Closing destination db connection")
 		m.destinationDb.Close()
 	}
 
@@ -365,7 +375,7 @@ func (m *Migrator) Quit() error {
 		return errors.New(tag + "Not initialized")
 	}
 
-	log.Printf(tag + "Sending quit signal")
+	logger.Printf(tag + "Sending quit signal")
 
 	m.terminated = true
 

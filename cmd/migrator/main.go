@@ -20,6 +20,8 @@ var (
 func main() {
 	flag.Parse()
 
+	logger := log.StandardLogger()
+
 	config, err := LoadConfigWithDefaults(*configFile)
 	if err != nil {
 		panic(err)
@@ -30,6 +32,7 @@ func main() {
 	signal.Notify(stop, syscall.SIGINT)
 
 	migrator.TrackingTableName = config.TrackingTableName
+	migrator.SetLogger(*logger)
 
 	var wg sync.WaitGroup
 
@@ -56,7 +59,7 @@ func main() {
 
 		for j := range config.Migrations[i].Iterations {
 			if _, ok := migrator.ExtractorMap[config.Migrations[i].Iterations[j].Extractor]; !ok {
-				log.Printf("'%s' is not a valid type of extractor [%#v]", config.Migrations[i].Iterations[j].Extractor, config.Migrations[i].Iterations[j])
+				logger.Printf("'%s' is not a valid type of extractor [%#v]", config.Migrations[i].Iterations[j].Extractor, config.Migrations[i].Iterations[j])
 				continue
 			}
 
@@ -74,7 +77,7 @@ func main() {
 			}
 
 			if _, ok := migrator.TransformerMap[transformer]; !ok {
-				log.Printf("Unable to resolve transformer '%s' for %#v", transformer, config.Migrations[i])
+				logger.Printf("Unable to resolve transformer '%s' for %#v", transformer, config.Migrations[i])
 				panic("bailing out")
 			}
 
@@ -83,7 +86,7 @@ func main() {
 				transformerParameters = parameters
 			}
 
-			log.Printf("Initializing with transformer parameters #%v", transformerParameters)
+			logger.Printf("Initializing with transformer parameters #%v", transformerParameters)
 			iter := migrator.Iteration{
 				SourceTable:           config.Migrations[i].Iterations[j].Source.Table,
 				SourceKey:             config.Migrations[i].Iterations[j].Source.Key,
@@ -106,7 +109,7 @@ func main() {
 	}
 
 	for i := range migrators {
-		log.Printf("Starting migrator #%d", i)
+		logger.Printf("Starting migrator #%d", i)
 		err = migrators[i].Run()
 		if err != nil {
 			log.Print(err)
@@ -115,7 +118,7 @@ func main() {
 	}
 
 	if config.Timeout != 0 {
-		log.Printf("Sleeping for %d seconds waiting for runs to finish", config.Timeout)
+		logger.Printf("Sleeping for %d seconds waiting for runs to finish", config.Timeout)
 		time.Sleep(time.Duration(config.Timeout) * time.Second)
 
 		for i := range migrators {
@@ -124,17 +127,17 @@ func main() {
 		return
 	}
 
-	log.Printf("Waiting for stop signals")
+	logger.Printf("Waiting for stop signals")
 	sig := <-stop
-	log.Printf("caught sig: %+v", sig)
-	log.Printf("Signalling all migrators to stop")
+	logger.Printf("caught sig: %+v", sig)
+	logger.Printf("Signalling all migrators to stop")
 	for i := range migrators {
 		err := migrators[i].Quit()
 		if err != nil {
-			log.Printf("ERROR: %s", err.Error())
+			logger.Printf("ERROR: %s", err.Error())
 		}
 	}
-	log.Printf("Wait for all threads to finish processing")
+	logger.Printf("Wait for all threads to finish processing")
 	wg.Wait()
 	os.Exit(0)
 }

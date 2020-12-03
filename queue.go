@@ -29,6 +29,7 @@ func OpenQueue(path string) (PersistenceQueue, error) {
 	return obj, err
 }
 
+// AddItem adds an item to the FIFO queue
 func (pq *PersistenceQueue) AddItem(item interface{}) error {
 	pq.mutex.Lock()
 	defer pq.mutex.Unlock()
@@ -36,6 +37,7 @@ func (pq *PersistenceQueue) AddItem(item interface{}) error {
 	return err
 }
 
+// GrabItem takes an item off of the FIFO queue
 func (pq *PersistenceQueue) GrabItem(item interface{}, fn func(interface{}) error) error {
 	pq.mutex.Lock()
 	defer pq.mutex.Unlock()
@@ -57,6 +59,7 @@ func (pq *PersistenceQueue) GrabItem(item interface{}, fn func(interface{}) erro
 	return err
 }
 
+// Close closes the underlying FIFO queue
 func (pq *PersistenceQueue) Close() {
 	pq.queue.Close()
 }

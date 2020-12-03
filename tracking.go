@@ -5,8 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"time"
-
-	log "github.com/sirupsen/logrus"
 )
 
 // TrackingStatus is the table definition for the tracking table which
@@ -90,7 +88,7 @@ func GetTrackingStatusTimestamp(db *sql.DB, sourceDatabase, sourceTable string) 
 // SerializeTrackingStatus serializes a copy of an actively modified
 // TrackingStatus to its underlying database table.
 func SerializeTrackingStatus(db *sql.DB, ts TrackingStatus) error {
-	log.Printf("SerializeTrackingStatus(): %s", ts)
+	logger.Printf("SerializeTrackingStatus(): %s", ts)
 	_, err := db.Exec("UPDATE `"+TrackingTableName+"` SET sequentialPosition = ?, timestampPosition = ?, lastRun = ? WHERE sourceDatabase = ? AND sourceTable = ?", ts.SequentialPosition, ts.TimestampPosition, ts.LastRun, ts.SourceDatabase, ts.SourceTable)
 	return err
 }

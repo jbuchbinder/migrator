@@ -1,12 +1,11 @@
 package migrator
 
-import log "github.com/sirupsen/logrus"
-
 func init() {
 	TransformerMap["tablerenamer"] = TableRenamerTransformer
 }
 
-// TableRenamerTransformer adjusts the
+// TableRenamerTransformer adjusts the table name of a destination table based
+// on the "TableName" parameter passed.
 var TableRenamerTransformer = func(dbName, tableName string, data []SQLRow, params *Parameters) []TableData {
 	debug := paramBool(*params, "Debug", false)
 
@@ -18,7 +17,7 @@ var TableRenamerTransformer = func(dbName, tableName string, data []SQLRow, para
 	newTableName, ok := (*params)["TableName"].(string)
 	if !ok {
 		if debug {
-			log.Printf("TableRenamerTransformer: parameter TableName not passed, retaining %s as name", tableName)
+			logger.Printf("TableRenamerTransformer: parameter TableName not passed, retaining %s as name", tableName)
 		}
 		newTableName = tableName
 	}
