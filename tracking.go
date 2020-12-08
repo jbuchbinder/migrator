@@ -38,7 +38,8 @@ func CreateTrackingTable(db *sql.DB) error {
 		columnName		VARCHAR(100) DEFAULT '',
 		sequentialPosition	BIGINT DEFAULT 0,
 		timestampPosition	TIMESTAMP NULL DEFAULT NULL,
-		lastRun			TIMESTAMP NULL DEFAULT NULL
+		lastRun			TIMESTAMP NULL DEFAULT NULL,
+		PRIMARY KEY ( sourceDatabase, sourceTable )
 	);`)
 	return err
 }
