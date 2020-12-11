@@ -236,7 +236,7 @@ func (m *Migrator) Run() error {
 			for {
 				ts, err = GetTrackingStatus(m.destinationDb, m.SourceDsn.DBName, m.Iterations[x].SourceTable)
 				if err != nil {
-					logger.Printf(tag+"GetTrackingStatus[Attempt %d]: %s", attempt, err.Error())
+					logger.Printf(tag+"GetTrackingStatus[Attempt %d, terminated=%#v]: %s", attempt, m.terminated, err.Error())
 					attempt++
 					m.sleepWithInterrupt(delay)
 					if m.terminated {
@@ -322,7 +322,7 @@ func (m *Migrator) Run() error {
 					for {
 						ts, err = GetTrackingStatus(m.destinationDb, m.SourceDsn.DBName, m.Iterations[x].SourceTable)
 						if err != nil {
-							logger.Printf(tag+"GetTrackingStatus[Attempt %d]: %s", attempt, err.Error())
+							logger.Printf(tag+"GetTrackingStatus[Attempt %d, terminated=%#v]: %s", attempt, m.terminated, err.Error())
 							attempt++
 							m.sleepWithInterrupt(delay)
 							if m.terminated {
@@ -372,6 +372,7 @@ func (m *Migrator) Quit() error {
 	tag := "Migrator.Quit(): "
 
 	if !m.initialized {
+		m.terminated = true
 		return errors.New(tag + "Not initialized")
 	}
 
