@@ -10,13 +10,13 @@ import (
 // TrackingStatus is the table definition for the tracking table which
 // maintains the ETL positioning
 type TrackingStatus struct {
-	Db                 *sql.DB
-	SourceDatabase     string   `db:"sourceDatabase"`
-	SourceTable        string   `db:"sourceTable"`
-	ColumnName         string   `db:"columnName"`
-	SequentialPosition int64    `db:"sequentialPosition"`
-	TimestampPosition  NullTime `db:"timestampPosition"`
-	LastRun            NullTime `db:"lastRun"`
+	Db                 *sql.DB  `json:"-"`
+	SourceDatabase     string   `json:"source-database" db:"sourceDatabase"`
+	SourceTable        string   `json:"source-table" db:"sourceTable"`
+	ColumnName         string   `json:"column-name" db:"columnName"`
+	SequentialPosition int64    `json:"sequential-position" db:"sequentialPosition"`
+	TimestampPosition  NullTime `json:"timestamp-position" db:"timestampPosition"`
+	LastRun            NullTime `json:"last-run" db:"lastRun"`
 }
 
 // String produces a human readable representation of a TrackingStatus object.
