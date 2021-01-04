@@ -3,7 +3,7 @@ package migrator
 import (
 	"bytes"
 	"database/sql"
-	"errors"
+	"fmt"
 	"math"
 	"reflect"
 )
@@ -30,11 +30,11 @@ func BatchedRemove(tx *sql.Tx, table string, data []SQLUntypedRow, size int, par
 
 	// Pull column names from first row
 	if len(data) < 1 {
-		return errors.New("BatchedRemove(): no data presented")
+		return fmt.Errorf("BatchedRemove(): [%s] no data presented", table)
 	}
 	keys := reflect.ValueOf(data[0]).MapKeys()
 	if len(keys) < 1 {
-		return errors.New("BatchedRemove(): no columns presented")
+		return fmt.Errorf("BatchedRemove(): [%s] no columns presented", table)
 	}
 
 	if size < 1 {
@@ -59,13 +59,13 @@ func BatchedRemove(tx *sql.Tx, table string, data []SQLUntypedRow, size int, par
 		prepared.WriteString(";")
 
 		if debug {
-			logger.Printf("BatchedRemove(): Prepared remove: %s", prepared.String())
+			logger.Printf("BatchedRemove(): [%s] Prepared remove: %s", table, prepared.String())
 		}
 
 		// Attempt to execute
 		_, err := tx.Exec(prepared.String(), params...)
 		if err != nil {
-			logger.Printf("BatchedRemove(): ERROR: %s", err.Error())
+			logger.Printf("BatchedRemove(): [%s] ERROR: %s", table, err.Error())
 			return err
 		}
 	}
@@ -82,11 +82,11 @@ func BatchedQuery(tx *sql.Tx, table string, data []SQLUntypedRow, size int, op s
 
 	// Pull column names from first row
 	if len(data) < 1 {
-		return errors.New("BatchedQuery(): no data presented")
+		return fmt.Errorf("BatchedQuery(): [%s] no data presented", table)
 	}
 	keys := reflect.ValueOf(data[0]).MapKeys()
 	if len(keys) < 1 {
-		return errors.New("BatchedQuery(): no columns presented")
+		return fmt.Errorf("BatchedQuery(): [%s] no columns presented", table)
 	}
 
 	if size < 1 {
@@ -133,21 +133,21 @@ func BatchedQuery(tx *sql.Tx, table string, data []SQLUntypedRow, size int, op s
 		prepared.WriteString(";")
 
 		if debug {
-			logger.Printf("BatchedQuery(): Prepared %s: %s", op, prepared.String())
+			logger.Printf("BatchedQuery(): [%s] Prepared %s: %s", table, op, prepared.String())
 		}
 
 		// Attempt to execute
 		res, err := tx.Exec(prepared.String(), params...)
 		if lowLevelDebug {
-			logger.Printf("BatchedQuery(): %s [%#v]", prepared.String(), params)
+			logger.Printf("BatchedQuery(): [%s] %s [%#v]", table, prepared.String(), params)
 		}
 		if debug {
 			lastInsertID, _ := res.LastInsertId()
 			rowsAffected, _ := res.RowsAffected()
-			logger.Printf("BatchedQuery(): last id inserted = %d, rows affected = %d", lastInsertID, rowsAffected)
+			logger.Printf("BatchedQuery(): [%s] last id inserted = %d, rows affected = %d", table, lastInsertID, rowsAffected)
 		}
 		if err != nil {
-			logger.Printf("BatchedQuery(): ERROR: %s", err.Error())
+			logger.Printf("BatchedQuery(): [%s] ERROR: %s", table, err.Error())
 			return err
 		}
 	}
