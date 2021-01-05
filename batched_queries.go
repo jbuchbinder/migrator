@@ -59,13 +59,13 @@ func BatchedRemove(tx *sql.Tx, table string, data []SQLUntypedRow, size int, par
 		prepared.WriteString(";")
 
 		if debug {
-			logger.Printf("BatchedRemove(): [%s] Prepared remove: %s", table, prepared.String())
+			logger.Debugf("BatchedRemove(): [%s] Prepared remove: %s", table, prepared.String())
 		}
 
 		// Attempt to execute
 		_, err := tx.Exec(prepared.String(), params...)
 		if err != nil {
-			logger.Printf("BatchedRemove(): [%s] ERROR: %s", table, err.Error())
+			logger.Errorf("BatchedRemove(): [%s] ERROR: %s", table, err.Error())
 			return err
 		}
 	}
@@ -133,21 +133,21 @@ func BatchedQuery(tx *sql.Tx, table string, data []SQLUntypedRow, size int, op s
 		prepared.WriteString(";")
 
 		if debug {
-			logger.Printf("BatchedQuery(): [%s] Prepared %s: %s", table, op, prepared.String())
+			logger.Debugf("BatchedQuery(): [%s] Prepared %s: %s", table, op, prepared.String())
 		}
 
 		// Attempt to execute
 		res, err := tx.Exec(prepared.String(), params...)
 		if lowLevelDebug {
-			logger.Printf("BatchedQuery(): [%s] %s [%#v]", table, prepared.String(), params)
+			logger.Tracef("BatchedQuery(): [%s] %s [%#v]", table, prepared.String(), params)
 		}
 		if debug {
 			lastInsertID, _ := res.LastInsertId()
 			rowsAffected, _ := res.RowsAffected()
-			logger.Printf("BatchedQuery(): [%s] last id inserted = %d, rows affected = %d", table, lastInsertID, rowsAffected)
+			logger.Debugf("BatchedQuery(): [%s] last id inserted = %d, rows affected = %d", table, lastInsertID, rowsAffected)
 		}
 		if err != nil {
-			logger.Printf("BatchedQuery(): [%s] ERROR: %s", table, err.Error())
+			logger.Errorf("BatchedQuery(): [%s] ERROR: %s", table, err.Error())
 			return err
 		}
 	}

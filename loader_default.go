@@ -26,10 +26,10 @@ var DefaultLoader = func(db *sql.DB, tables []TableData, params *Parameters) err
 		}
 
 		for method := range rowsByMethod {
-			logger.Printf(tag+"Beginning transaction, InsertBatchSize == %d", size)
+			logger.Debugf(tag+"Beginning transaction, InsertBatchSize == %d", size)
 			tx, err := db.Begin()
 			if err != nil {
-				logger.Printf(tag + "Transaction start: " + err.Error())
+				logger.Errorf(tag + "Transaction start: " + err.Error())
 				return err
 			}
 			switch method {
@@ -48,25 +48,25 @@ var DefaultLoader = func(db *sql.DB, tables []TableData, params *Parameters) err
 				break
 
 			default:
-				logger.Printf(tag+"Unknown method '%s' present, falling back on REPLACE", method)
+				logger.Debugf(tag+"Unknown method '%s' present, falling back on REPLACE", method)
 				err = BatchedReplace(tx, table.TableName, rowsByMethod[method], size, params)
 				break
 			}
 			if err != nil {
-				logger.Printf(tag + "Rolling back transaction")
+				logger.Warnf(tag + "Rolling back transaction")
 				err2 := tx.Rollback()
 				if err2 != nil {
-					logger.Printf(tag + "Error during rollback: " + err2.Error())
+					logger.Errorf(tag + "Error during rollback: " + err2.Error())
 				}
 				return err
 			}
 
-			logger.Printf(tag+"Duration to insert %d rows: %s", len(table.Data), time.Since(tsStart).String())
+			logger.Infof(tag+"Duration to insert %d rows: %s", len(table.Data), time.Since(tsStart).String())
 
-			logger.Printf(tag + "Committing transaction")
+			logger.Debugf(tag + "Committing transaction")
 			err = tx.Commit()
 			if err != nil {
-				logger.Printf(tag + "Error during commit: " + err.Error())
+				logger.Errorf(tag + "Error during commit: " + err.Error())
 			}
 		}
 	}

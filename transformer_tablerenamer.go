@@ -17,7 +17,7 @@ var TableRenamerTransformer = func(dbName, tableName string, data []SQLRow, para
 	newTableName, ok := (*params)["TableName"].(string)
 	if !ok {
 		if debug {
-			logger.Printf("TableRenamerTransformer: parameter TableName not passed, retaining %s as name", tableName)
+			logger.Debugf("TableRenamerTransformer: parameter TableName not passed, retaining %s as name", tableName)
 		}
 		newTableName = tableName
 	}

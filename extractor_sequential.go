@@ -24,7 +24,7 @@ var ExtractorSequential = func(db *sql.DB, dbName, tableName string, ts Tracking
 	moreData := false
 
 	if debug {
-		logger.Printf(tag+"Beginning run with params %#v", params)
+		logger.Debugf(tag+"Beginning run with params %#v", params)
 	}
 
 	data := make([]SQLRow, 0)
@@ -38,7 +38,7 @@ var ExtractorSequential = func(db *sql.DB, dbName, tableName string, ts Tracking
 	}
 	rows, err := db.Query("SELECT * FROM `"+tableName+"` WHERE `"+ts.ColumnName+"` > ? LIMIT ?", ts.SequentialPosition, batchSize)
 	if err != nil {
-		logger.Printf(tag + "ERR: " + err.Error())
+		logger.Errorf(tag + "ERR: " + err.Error())
 		return false, data, ts, err
 	}
 	defer rows.Close()
@@ -47,7 +47,7 @@ var ExtractorSequential = func(db *sql.DB, dbName, tableName string, ts Tracking
 		return false, data, ts, err
 	}
 	if debug {
-		logger.Printf(tag+"Columns %v", cols)
+		logger.Debugf(tag+"Columns %v", cols)
 	}
 	dataCount := 0
 	for rows.Next() {
@@ -60,7 +60,7 @@ var ExtractorSequential = func(db *sql.DB, dbName, tableName string, ts Tracking
 
 		err = rows.Scan(scanArgs...)
 		if err != nil {
-			logger.Printf(tag + "Scan: " + err.Error())
+			logger.Errorf(tag + "Scan: " + err.Error())
 			return false, data, ts, err
 		}
 
@@ -80,35 +80,35 @@ var ExtractorSequential = func(db *sql.DB, dbName, tableName string, ts Tracking
 		// Sanity check the column before committing to avoid panics during casting
 		seqno, ok := rowData.Data[ts.ColumnName].(int64)
 		if !ok {
-			logger.Printf(tag+"ERROR: Unable to process table %s due to column %s not being an integer", dbName+"."+tableName, ts.ColumnName)
+			logger.Errorf(tag+"ERROR: Unable to process table %s due to column %s not being an integer", dbName+"."+tableName, ts.ColumnName)
 			return false, data, ts, nil
 		}
 		minSeq = int64min(minSeq, seqno)
 		maxSeq = int64max(maxSeq, seqno)
 	}
 
-	logger.Printf(tag+"Duration to extract %d rows: %s", dataCount, time.Since(tsStart).String())
+	logger.Infof(tag+"Duration to extract %d rows: %s", dataCount, time.Since(tsStart).String())
 
 	if dataCount == 0 {
 		if debug {
-			logger.Printf(tag+"Batch size %d, row count %d; indicating no more data", batchSize, dataCount)
+			logger.Debugf(tag+"Batch size %d, row count %d; indicating no more data", batchSize, dataCount)
 		}
 		return false, data, ts, nil
 	}
 
 	if dataCount < batchSize {
 		if debug {
-			logger.Printf(tag+"Batch size %d, row count %d; indicating no more data", batchSize, dataCount)
+			logger.Debugf(tag+"Batch size %d, row count %d; indicating no more data", batchSize, dataCount)
 		}
 		moreData = false
 	} else {
 		if debug {
-			logger.Printf(tag+"Batch size %d == row count %d; indicating more data", batchSize, dataCount)
+			logger.Debugf(tag+"Batch size %d == row count %d; indicating more data", batchSize, dataCount)
 		}
 		moreData = true
 	}
 
-	logger.Printf(tag+"%s seq value range %d - %d", ts.ColumnName, minSeq, maxSeq)
+	logger.Infof(tag+"%s seq value range %d - %d", ts.ColumnName, minSeq, maxSeq)
 	// Manually copy old tracking object ...
 	newTs := &TrackingStatus{
 		Db:             ts.Db,
