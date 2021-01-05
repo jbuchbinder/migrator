@@ -32,7 +32,7 @@ func main() {
 	signal.Notify(stop, syscall.SIGINT)
 
 	migrator.TrackingTableName = config.TrackingTableName
-	migrator.SetLogger(*logger)
+	migrator.SetLogger(logger)
 
 	var wg sync.WaitGroup
 
