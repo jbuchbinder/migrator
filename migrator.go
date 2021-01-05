@@ -223,7 +223,7 @@ func (m *Migrator) Run() error {
 
 	tag := "Migrator.Run(): [" + m.SourceDsn.DBName + "] "
 
-	logger.Info(tag + "Entry")
+	logger.Debugf(tag + "Entry")
 
 	if !m.initialized {
 		return errors.New(tag + "Not initialized")
@@ -254,7 +254,7 @@ func (m *Migrator) Run() error {
 				}
 				break
 			}
-			logger.Info(tag + "Entering loop")
+			logger.Debugf(tag + "Entering loop")
 			for {
 				if m.terminated {
 					logger.Infof(tag + "Received quit signal")
@@ -262,7 +262,7 @@ func (m *Migrator) Run() error {
 					m.wg.Done()
 					return
 				}
-				logger.Infof(tag+"TrackingStatus: %s", ts.String())
+				logger.Debugf(tag+"TrackingStatus: %s", ts.String())
 
 				more, rows, newTs, err := m.Iterations[x].Extractor(m.sourceDb, m.SourceDsn.DBName, m.Iterations[x].SourceTable, ts, m.Iterations[x].Parameters)
 				if err != nil {
@@ -275,13 +275,13 @@ func (m *Migrator) Run() error {
 						}, err)
 					}
 				}
-				logger.Infof(tag+"Extracted %d rows", len(rows))
+				logger.Infof(tag+"[%s.%s] Extracted %d rows", m.SourceDsn.DBName, m.Iterations[x].SourceTable, len(rows))
 
-				logger.Infof(tag+"Running transformer for %s.%s", m.SourceDsn.DBName, m.Iterations[x].SourceTable)
-				logger.Infof(tag+"Transformer %#v (%s,%s,%#v,%#v)", m.Iterations[x].Transformer, m.DestinationDsn.DBName, m.Iterations[x].DestinationTable, rows, m.Iterations[x].TransformerParameters)
+				logger.Debugf(tag+"Running transformer for %s.%s", m.SourceDsn.DBName, m.Iterations[x].SourceTable)
+				logger.Debugf(tag+"Transformer %#v (%s,%s,%#v,%#v)", m.Iterations[x].Transformer, m.DestinationDsn.DBName, m.Iterations[x].DestinationTable, rows, m.Iterations[x].TransformerParameters)
 				data := m.Iterations[x].Transformer(m.DestinationDsn.DBName, m.Iterations[x].DestinationTable, rows, m.Iterations[x].TransformerParameters)
-				logger.Infof(tag+"Transformer put out %#v for data", data)
-				logger.Infof(tag+"Running loader for %s.%s", m.SourceDsn.DBName, m.Iterations[x].SourceTable)
+				logger.Tracef(tag+"Transformer put out %#v for data", data)
+				logger.Debugf(tag+"Running loader for %s.%s", m.SourceDsn.DBName, m.Iterations[x].SourceTable)
 				err = m.Iterations[x].Loader(m.destinationDb, data, m.Iterations[x].Parameters)
 				if err != nil {
 					logger.Errorf(tag + "Loader: " + err.Error())
@@ -296,7 +296,7 @@ func (m *Migrator) Run() error {
 					}
 				}
 
-				logger.Infof(tag + "Tracking: Updating table")
+				logger.Debugf(tag + "Tracking: Updating table")
 				err = SerializeTrackingStatus(m.destinationDb, newTs)
 				if err != nil {
 					logger.Errorf(tag + "Tracking: " + err.Error())
