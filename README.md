@@ -13,6 +13,7 @@ ETL / data migrator.
 | ``BatchSize``         | integer | 1000    | Extractor: Number of rows polled from the source database at a time    |
 | ``Debug``             | bool    | false   | Show additional debugging information                                  |
 | ``InsertBatchSize``   | integer | 100     | Loader: Number of rows inserted per statement                          |
+| ``OnlyPast``          | bool    | false   | Extractor(timestamp): Only poll for timestamps in the past ( #1 )      |
 | ``SequentialReplace`` | bool    | false   | Loader: Use REPLACE instead of INSERT for sequentially extracted data. |
 | ``SleepBetweenRuns``  | integer | 5       | Migrator: Seconds to sleep when no data has been found                 |
 
