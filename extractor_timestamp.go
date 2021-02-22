@@ -15,6 +15,7 @@ func init() {
 var ExtractorTimestamp = func(db *sql.DB, dbName, tableName string, ts TrackingStatus, params *Parameters) (bool, []SQLRow, TrackingStatus, error) {
 	batchSize := paramInt(*params, "BatchSize", DefaultBatchSize)
 	debug := paramBool(*params, "Debug", false)
+	onlyPast := paramBool(*params, "OnlyPast", false)
 
 	tag := fmt.Sprintf("ExtractorTimestamp[%s.%s]: ", dbName, tableName)
 
@@ -30,9 +31,19 @@ var ExtractorTimestamp = func(db *sql.DB, dbName, tableName string, ts TrackingS
 	tsStart := time.Now()
 
 	if debug {
-		logger.Debugf(tag+"Query: \"SELECT * FROM `"+tableName+"` WHERE `"+ts.ColumnName+"` > %v LIMIT %d\"", ts.TimestampPosition, batchSize)
+		if onlyPast {
+			logger.Debugf(tag+"Query: \"SELECT * FROM `"+tableName+"` WHERE `"+ts.ColumnName+"` > %v AND `"+ts.ColumnName+"` <= NOW() LIMIT %d\"", ts.TimestampPosition, batchSize)
+		} else {
+			logger.Debugf(tag+"Query: \"SELECT * FROM `"+tableName+"` WHERE `"+ts.ColumnName+"` > %v LIMIT %d\"", ts.TimestampPosition, batchSize)
+		}
 	}
-	rows, err := db.Query("SELECT * FROM `"+tableName+"` WHERE `"+ts.ColumnName+"` > ? LIMIT ?", ts.TimestampPosition, batchSize)
+	var rows *sql.Rows
+	var err error
+	if onlyPast {
+		rows, err = db.Query("SELECT * FROM `"+tableName+"` WHERE `"+ts.ColumnName+"` > ? AND `"+ts.ColumnName+"` <= NOW() LIMIT ?", ts.TimestampPosition, batchSize)
+	} else {
+		rows, err = db.Query("SELECT * FROM `"+tableName+"` WHERE `"+ts.ColumnName+"` > ? LIMIT ?", ts.TimestampPosition, batchSize)
+	}
 	if err != nil {
 		logger.Errorf(tag + "ERR: " + err.Error())
 		return false, data, ts, err
