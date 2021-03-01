@@ -1,6 +1,6 @@
 module github.com/jbuchbinder/migrator/cmd/migrator
 
-go 1.15
+go 1.16
 
 replace github.com/jbuchbinder/migrator => ../../
 

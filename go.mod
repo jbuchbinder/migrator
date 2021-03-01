@@ -1,6 +1,6 @@
 module github.com/jbuchbinder/migrator
 
-go 1.15
+go 1.16
 
 require (
 	github.com/beeker1121/goque v2.0.1+incompatible
