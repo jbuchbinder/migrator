@@ -53,8 +53,8 @@ type Migrator struct {
 
 	sourceDb      *sql.DB
 	destinationDb *sql.DB
-	terminated    bool
 	initialized   bool
+	state         MigratorState
 	wg            *sync.WaitGroup
 }
 
@@ -106,14 +106,39 @@ func (m *Migrator) SetWaitGroup(wg *sync.WaitGroup) {
 	m.wg = wg
 }
 
+// State returns the current state of the migrator
+func (m Migrator) State() MigratorState {
+	return m.state
+}
+
+// SetState sets the current state of the migrator
+func (m *Migrator) SetState(s MigratorState) {
+	m.state = s
+}
+
+// Pause will "pause" the migrator
+func (m *Migrator) Pause(p bool) error {
+	tag := "Migrator.Pause(): [" + m.SourceDsn.DBName + "] "
+
+	if !m.initialized {
+		m.state = S_STOPPED
+		return errors.New(tag + "Not initialized")
+	}
+
+	logger.Infof(tag + "Sending quit signal")
+	m.state = S_STOPPING
+
+	return nil
+}
+
 // SetErrorCallback sets the error callback function
 func (m *Migrator) SetErrorCallback(f func(map[string]string, error)) {
 	m.ErrorCallback = f
 }
 
 // GetWaitGroup returns the wait group instance being used
-func (m Migrator) GetWaitGroup() sync.WaitGroup {
-	return *(m.wg)
+func (m Migrator) GetWaitGroup() *sync.WaitGroup {
+	return m.wg
 }
 
 // Init initializes the underlying MySQL database connections for the
@@ -207,7 +232,7 @@ func (m *Migrator) Init() error {
 func (m *Migrator) sleepWithInterrupt(length int) {
 	for i := 0; i <= length; i++ {
 		time.Sleep(time.Second)
-		if m.terminated {
+		if m.state == S_STOPPING {
 			return
 		}
 	}
@@ -225,9 +250,11 @@ func (m *Migrator) Run() error {
 
 	logger.Debugf(tag + "Entry")
 
-	if !m.initialized {
-		return errors.New(tag + "Not initialized")
+	if !m.initialized && m.state != S_STOPPED && m.state != S_STOPPING {
+		return errors.New(tag + "Not initialized or in S_STOPPING|S_STOPPED state")
 	}
+
+	m.state = S_RUNNING
 
 	for x := range m.Iterations {
 		delay := paramInt(*m.Iterations[x].Parameters, "SleepBetweenRuns", 5)
@@ -241,11 +268,11 @@ func (m *Migrator) Run() error {
 			for {
 				ts, err = GetTrackingStatus(m.destinationDb, m.SourceDsn.DBName, m.Iterations[x].SourceTable)
 				if err != nil {
-					logger.Warnf(tag+"GetTrackingStatus[Attempt %d, terminated=%#v]: %s", attempt, m.terminated, err.Error())
+					logger.Warnf(tag+"GetTrackingStatus[Attempt %d, state=%s]: %s", attempt, m.state, err.Error())
 					attempt++
 					m.sleepWithInterrupt(delay)
-					if m.terminated {
-						logger.Infof(tag + "Received quit signal")
+					if m.state == S_STOPPING || m.state == S_STOPPED {
+						logger.Infof(tag+"Received status %s", m.state.String())
 						m.Close()
 						m.wg.Done()
 						return
@@ -256,13 +283,13 @@ func (m *Migrator) Run() error {
 			}
 			logger.Debugf(tag + "Entering loop")
 			for {
-				if m.terminated {
-					logger.Infof(tag + "Received quit signal")
+				if m.state == S_STOPPING || m.state == S_STOPPED {
+					logger.Infof(tag+"Received state %s", m.state.String())
 					m.Close()
 					m.wg.Done()
 					return
 				}
-				logger.Debugf(tag+"TrackingStatus: %s", ts.String())
+				logger.Debugf(tag+"TrackingStatus[state=%s]: %s", m.state.String(), ts.String())
 
 				more, rows, newTs, err := m.Iterations[x].Extractor(m.sourceDb, m.SourceDsn.DBName, m.Iterations[x].SourceTable, ts, m.Iterations[x].Parameters)
 				if err != nil {
@@ -313,11 +340,17 @@ func (m *Migrator) Run() error {
 					for {
 						ts, err = GetTrackingStatus(m.destinationDb, m.SourceDsn.DBName, m.Iterations[x].SourceTable)
 						if err != nil {
-							logger.Warnf(tag+"GetTrackingStatus[Attempt %d, terminated=%#v]: %s", attempt, m.terminated, err.Error())
+							logger.Warnf(tag+"GetTrackingStatus[Attempt %d, state=%s]: %s", attempt, m.state, err.Error())
 							attempt++
 							m.sleepWithInterrupt(delay)
-							if m.terminated {
-								logger.Infof(tag + "Received quit signal")
+							if m.state == S_STOPPING {
+								logger.Infof(tag + "S_STOPPING state")
+								m.Close()
+								m.wg.Done()
+								return
+							}
+							if m.state == S_STOPPED {
+								logger.Infof(tag + "S_STOPPED state")
 								m.Close()
 								m.wg.Done()
 								return
@@ -333,7 +366,6 @@ func (m *Migrator) Run() error {
 				time.Sleep(time.Millisecond * 150)
 			}
 		}(x)
-
 	}
 
 	return nil
@@ -362,14 +394,18 @@ func (m *Migrator) Close() {
 func (m *Migrator) Quit() error {
 	tag := "Migrator.Quit(): "
 
+	if m.state == S_STOPPED {
+		log.Warnf(tag + "State == S_STOPPED")
+		return nil
+	}
+
 	if !m.initialized {
-		m.terminated = true
+		m.state = S_STOPPED
 		return errors.New(tag + "Not initialized")
 	}
 
-	logger.Infof(tag + "Sending quit signal")
-
-	m.terminated = true
+	logger.Infof(tag + "Setting state to S_STOPPING")
+	m.state = S_STOPPING
 
 	return nil
 }
