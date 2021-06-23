@@ -13,9 +13,9 @@ func init() {
 // ExtractorTimestamp is an Extractor instance which uses a DATETIME/TIMESTAMP
 // field to determine which rows to pull from the source database table.
 var ExtractorTimestamp = func(db *sql.DB, dbName, tableName string, ts TrackingStatus, params *Parameters) (bool, []SQLRow, TrackingStatus, error) {
-	batchSize := paramInt(*params, "BatchSize", DefaultBatchSize)
-	debug := paramBool(*params, "Debug", false)
-	onlyPast := paramBool(*params, "OnlyPast", false)
+	batchSize := paramInt(*params, ParamBatchSize, DefaultBatchSize)
+	debug := paramBool(*params, ParamDebug, false)
+	onlyPast := paramBool(*params, ParamOnlyPast, false)
 
 	tag := fmt.Sprintf("ExtractorTimestamp[%s.%s]: ", dbName, tableName)
 
@@ -123,7 +123,7 @@ var ExtractorTimestamp = func(db *sql.DB, dbName, tableName string, ts TrackingS
 		LastRun:           NullTimeNow(),
 	}
 
-	(*params)["METHOD"] = "REPLACE"
+	(*params)[ParamMethod] = "REPLACE"
 
 	return moreData, data, *newTs, err
 }

@@ -48,11 +48,11 @@ func main() {
 			Apm:            config.Migrations[i].Apm,
 			Iterations:     []migrator.Iteration{},
 			Parameters: &migrator.Parameters{
-				"Debug":             config.Debug,
-				"BatchSize":         config.Parameters.BatchSize,
-				"InsertBatchSize":   config.Parameters.InsertBatchSize,
-				"SequentialReplace": config.Parameters.SequentialReplace,
-				"SleepBetweenRuns":  config.Parameters.SleepBetweenRuns,
+				migrator.ParamDebug:             config.Debug,
+				migrator.ParamBatchSize:         config.Parameters.BatchSize,
+				migrator.ParamInsertBatchSize:   config.Parameters.InsertBatchSize,
+				migrator.ParamSequentialReplace: config.Parameters.SequentialReplace,
+				migrator.ParamSleepBetweenRuns:  config.Parameters.SleepBetweenRuns,
 			},
 		}
 		migrators[i].SetWaitGroup(&wg)
@@ -64,11 +64,11 @@ func main() {
 			}
 
 			parameters := &migrator.Parameters{
-				"Debug":             config.Debug,
-				"BatchSize":         config.Parameters.BatchSize,
-				"InsertBatchSize":   config.Parameters.InsertBatchSize,
-				"SequentialReplace": config.Parameters.SequentialReplace,
-				"SleepBetweenRuns":  config.Parameters.SleepBetweenRuns,
+				migrator.ParamDebug:             config.Debug,
+				migrator.ParamBatchSize:         config.Parameters.BatchSize,
+				migrator.ParamInsertBatchSize:   config.Parameters.InsertBatchSize,
+				migrator.ParamSequentialReplace: config.Parameters.SequentialReplace,
+				migrator.ParamSleepBetweenRuns:  config.Parameters.SleepBetweenRuns,
 			}
 
 			transformer := config.Migrations[i].Iterations[j].Transformer

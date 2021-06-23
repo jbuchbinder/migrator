@@ -6,7 +6,7 @@ func init() {
 
 // DefaultTransformer by default does nothing -- the data is not transformed.
 var DefaultTransformer = func(dbName, tableName string, data []SQLRow, params *Parameters) []TableData {
-	method, ok := (*params)["METHOD"].(string)
+	method, ok := (*params)[ParamMethod].(string)
 	if !ok {
 		method = ""
 	}

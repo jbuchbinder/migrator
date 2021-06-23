@@ -14,8 +14,8 @@ func init() {
 // ExtractorTimestampFallback is an Extractor instance which uses a DATETIME/TIMESTAMP
 // field to determine which rows to pull from the source database table.
 var ExtractorTimestampFallback = func(db *sql.DB, dbName, tableName string, ts TrackingStatus, params *Parameters) (bool, []SQLRow, TrackingStatus, error) {
-	batchSize := paramInt(*params, "BatchSize", DefaultBatchSize)
-	debug := paramBool(*params, "Debug", false)
+	batchSize := paramInt(*params, ParamBatchSize, DefaultBatchSize)
+	debug := paramBool(*params, ParamDebug, false)
 
 	tag := fmt.Sprintf("ExtractorTimestampFallback[%s.%s]: ", dbName, tableName)
 
@@ -121,7 +121,7 @@ var ExtractorTimestampFallback = func(db *sql.DB, dbName, tableName string, ts T
 		LastRun:           NullTimeNow(),
 	}
 
-	(*params)["METHOD"] = "REPLACE"
+	(*params)[ParamMethod] = "REPLACE"
 
 	return moreData, data, *newTs, err
 }

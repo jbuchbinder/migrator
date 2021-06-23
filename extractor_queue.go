@@ -16,7 +16,7 @@ func init() {
 // to replicate a row.
 var ExtractorQueue = func(db *sql.DB, dbName, tableName string, ts TrackingStatus, params *Parameters) (bool, []SQLRow, TrackingStatus, error) {
 	batchSize := paramInt(*params, "BatchSize", DefaultBatchSize)
-	debug := paramBool(*params, "Debug", false)
+	debug := paramBool(*params, ParamDebug, false)
 
 	tag := fmt.Sprintf("ExtractorQueue[%s.%s]: ", dbName, tableName)
 
@@ -167,6 +167,6 @@ var ExtractorQueue = func(db *sql.DB, dbName, tableName string, ts TrackingStatu
 		LastRun:            NullTimeNow(),
 	}
 
-	(*params)["METHOD"] = "REPLACE"
+	(*params)[ParamMethod] = "REPLACE"
 	return moreData, data, *newTs, nil
 }

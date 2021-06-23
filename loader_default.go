@@ -9,8 +9,8 @@ import (
 var DefaultLoader = func(db *sql.DB, tables []TableData, params *Parameters) error {
 	var err error
 
-	size := paramInt(*params, "InsertBatchSize", 100)
-	//debug := paramBool(*params, "Debug", false)
+	size := paramInt(*params, ParamInsertBatchSize, 100)
+	//debug := paramBool(*params, ParamDebug, false)
 
 	for _, table := range tables {
 		tag := "DefaultLoader(" + table.DbName + "." + table.TableName + "): "

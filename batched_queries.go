@@ -26,7 +26,7 @@ func BatchedReplace(tx *sql.Tx, table string, data []SQLUntypedRow, size int, pa
 // DELETE FROM statements to remove the data in an existing sql.Tx (transaction)
 // object.
 func BatchedRemove(tx *sql.Tx, table string, data []SQLUntypedRow, size int, params *Parameters) error {
-	debug := paramBool(*params, "Debug", false)
+	debug := paramBool(*params, ParamDebug, false)
 
 	// Pull column names from first row
 	if len(data) < 1 {
@@ -77,8 +77,8 @@ func BatchedRemove(tx *sql.Tx, table string, data []SQLUntypedRow, size int, par
 // batched queries to insert/replace the data into an existing sql.Tx
 // (transaction) object.
 func BatchedQuery(tx *sql.Tx, table string, data []SQLUntypedRow, size int, op string, params *Parameters) error {
-	debug := paramBool(*params, "Debug", false)
-	lowLevelDebug := paramBool(*params, "LowLevelDebug", false)
+	debug := paramBool(*params, ParamDebug, false)
+	lowLevelDebug := paramBool(*params, ParamLowLevelDebug, false)
 
 	// Pull column names from first row
 	if len(data) < 1 {

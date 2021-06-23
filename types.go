@@ -20,6 +20,36 @@ var (
 	// RecordQueueTable is the table name for the non-update field
 	// capable entries.
 	RecordQueueTable = "MigratorRecordQueue"
+	// ParamMethod is the parameter name which specifies the insert or
+	// update method being used by portions of the migrator.
+	ParamMethod = "METHOD"
+	// ParamInsertBatchSize is the parameter used by the default loader
+	// to batch queries. Int, defaults to 1000.
+	ParamInsertBatchSize = "InsertBatchSize"
+	// ParamDebug is the parameter used to enable basic debugging
+	// code in modules. Boolean, defaults to false.
+	ParamDebug = "Debug"
+	// ParamLowLevelDebug is the parameter used to enable lower level
+	// debugging code in modules. It is boolean and defaults to false.
+	ParamLowLevelDebug = "LowLevelDebug"
+	// ParamBatchSize is the parameter used to specify general batch
+	// processing size for polling records from the database. Int,
+	// defaults to 100.
+	ParamBatchSize = "BatchSize"
+	// ParamOnlyPast is the parameter for timestamp-based polling which
+	// only polls for timestamps in the past. Boolean, defaults to
+	// false.
+	ParamOnlyPast = "OnlyPast"
+	// ParamSequentialReplace is the parameter for loading which uses
+	// REPLACE instead of INSERT for sequentially extracted data. Boolean,
+	// defaults to false.
+	ParamSequentialReplace = "SequentialReplace"
+	// ParamTableName is the parameter for an adjusted table name.
+	// String, defaults to "".
+	ParamTableName = "TableName"
+	// ParamSleepBetweenRuns is the parameter which defines the amount of
+	// time between runs in seconds. Int, defaults to 5.
+	ParamSleepBetweenRuns = "SleepBetweenRuns"
 )
 
 // SQLUntypedRow represents a single row of SQL data which is not strongly

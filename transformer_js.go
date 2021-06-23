@@ -17,9 +17,9 @@ func init() {
 // TableRenamerTransformer adjusts the table name of a destination table based
 // on the "TableName" parameter passed.
 var TableRenamerJavascript = xxx func(dbName, tableName string, data []SQLRow, params *Parameters) []TableData {
-	debug := paramBool(*params, "Debug", false)
+	debug := paramBool(*params, ParamDebug, false)
 
-	method, ok := (*params)["METHOD"].(string)
+	method, ok := (*params)[ParamMethod].(string)
 	if !ok {
 		method = ""
 	}

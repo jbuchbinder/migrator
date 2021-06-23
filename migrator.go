@@ -241,7 +241,7 @@ func (m *Migrator) sleepWithInterrupt(length int) {
 // Run spins off a goroutine with a running migrator until the corresponding
 // Quit() method is called.
 func (m *Migrator) Run() error {
-	debug := paramBool(*(m.Parameters), "Debug", false)
+	debug := paramBool(*(m.Parameters), ParamDebug, false)
 	if debug {
 		//logger.Level = log.TraceLevel
 	}
@@ -257,7 +257,7 @@ func (m *Migrator) Run() error {
 	m.state = S_RUNNING
 
 	for x := range m.Iterations {
-		delay := paramInt(*m.Iterations[x].Parameters, "SleepBetweenRuns", 5)
+		delay := paramInt(*m.Iterations[x].Parameters, ParamSleepBetweenRuns, 5)
 
 		m.wg.Add(1)
 		go func(x int) {

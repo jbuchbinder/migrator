@@ -15,9 +15,9 @@ func init() {
 // sequence to determine which rows should be extracted from the source
 // database table.
 var ExtractorSequential = func(db *sql.DB, dbName, tableName string, ts TrackingStatus, params *Parameters) (bool, []SQLRow, TrackingStatus, error) {
-	batchSize := paramInt(*params, "BatchSize", DefaultBatchSize)
-	sequentialReplace := paramBool(*params, "SequentialReplace", false)
-	debug := paramBool(*params, "Debug", false)
+	batchSize := paramInt(*params, ParamBatchSize, DefaultBatchSize)
+	sequentialReplace := paramBool(*params, ParamSequentialReplace, false)
+	debug := paramBool(*params, ParamDebug, false)
 
 	tag := fmt.Sprintf("ExtractorSequential[%s.%s]: ", dbName, tableName)
 
@@ -121,9 +121,9 @@ var ExtractorSequential = func(db *sql.DB, dbName, tableName string, ts Tracking
 	}
 
 	if sequentialReplace {
-		(*params)["METHOD"] = "REPLACE"
+		(*params)[ParamMethod] = "REPLACE"
 	} else {
-		(*params)["METHOD"] = "INSERT"
+		(*params)[ParamMethod] = "INSERT"
 	}
 
 	return moreData, data, *newTs, nil
