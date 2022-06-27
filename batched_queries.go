@@ -42,7 +42,7 @@ func BatchedRemove(tx *sql.Tx, table string, data []SQLUntypedRow, size int, par
 	}
 
 	for i := 0; i < len(data); i++ {
-		params := make([]interface{}, 0)
+		params := make([]any, 0)
 
 		// Header is always the same
 		prepared := new(bytes.Buffer)
@@ -95,7 +95,7 @@ func BatchedQuery(tx *sql.Tx, table string, data []SQLUntypedRow, size int, op s
 	batches := int(math.Ceil(float64(len(data)) / float64(size)))
 
 	for i := 0; i < batches; i++ {
-		params := make([]interface{}, 0)
+		params := make([]any, 0)
 
 		// Header is always the same
 		prepared := new(bytes.Buffer)

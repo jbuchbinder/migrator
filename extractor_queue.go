@@ -83,7 +83,7 @@ var ExtractorQueue = func(db *sql.DB, dbName, tableName string, ts TrackingStatu
 			}
 			qs += " LIMIT 1"
 			qvRaw := strings.Split(rq.PrimaryKeyColumnValue, ",")
-			qv := []interface{}{}
+			qv := []any{}
 			for _, v := range qvRaw {
 				qv = append(qv, v)
 			}
@@ -104,8 +104,8 @@ var ExtractorQueue = func(db *sql.DB, dbName, tableName string, ts TrackingStatu
 		}
 		for rows.Next() {
 			dataCount++
-			scanArgs := make([]interface{}, len(cols))
-			values := make([]interface{}, len(cols))
+			scanArgs := make([]any, len(cols))
+			values := make([]any, len(cols))
 			for i := range values {
 				scanArgs[i] = &values[i]
 			}

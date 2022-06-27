@@ -59,8 +59,8 @@ var ExtractorTimestamp = func(db *sql.DB, dbName, tableName string, ts TrackingS
 	dataCount := 0
 	for rows.Next() {
 		dataCount++
-		scanArgs := make([]interface{}, len(cols))
-		values := make([]interface{}, len(cols))
+		scanArgs := make([]any, len(cols))
+		values := make([]any, len(cols))
 		for i := range values {
 			scanArgs[i] = &values[i]
 		}
