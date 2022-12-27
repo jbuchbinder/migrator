@@ -117,7 +117,7 @@ func (m *Migrator) SetState(s MigratorState) {
 }
 
 // Pause will "pause" the migrator
-func (m *Migrator) Pause(p bool) error {
+func (m *Migrator) Pause() error {
 	tag := "Migrator.Pause(): [" + m.SourceDsn.DBName + "] "
 
 	if !m.initialized {
@@ -132,7 +132,7 @@ func (m *Migrator) Pause(p bool) error {
 }
 
 // Unpause will "un-pause" the migrator
-func (m *Migrator) Unpause(p bool) error {
+func (m *Migrator) Unpause() error {
 	tag := "Migrator.Unpause(): [" + m.SourceDsn.DBName + "] "
 
 	if !m.initialized {
