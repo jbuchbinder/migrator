@@ -120,6 +120,11 @@ func (m *Migrator) SetState(s MigratorState) {
 func (m *Migrator) Pause() error {
 	tag := "Migrator.Pause(): [" + m.SourceDsn.DBName + "] "
 
+	// Make sure this is quiet and non-desctructive if called when already paused
+	if m.state == S_PAUSED {
+		return nil
+	}
+
 	if !m.initialized {
 		m.state = S_STOPPED
 		return nil
@@ -134,6 +139,11 @@ func (m *Migrator) Pause() error {
 // Unpause will "un-pause" the migrator
 func (m *Migrator) Unpause() error {
 	tag := "Migrator.Unpause(): [" + m.SourceDsn.DBName + "] "
+
+	// Make sure this is quiet and non-desctructive if called when already unpaused
+	if m.state == S_RUNNING {
+		return nil
+	}
 
 	if !m.initialized {
 		return m.Init()
