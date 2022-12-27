@@ -19,6 +19,9 @@ const (
 	// S_STARTING is the status of a migrator when a start has been
 	// requested
 	S_STARTING = 5
+	// S_PAUSED is the status of a migrator when a pause has been
+	// implemented
+	S_PAUSED = 6
 	// S_INVALID represents an invalid state
 	S_INVALID = -1
 )
@@ -39,6 +42,8 @@ func (m MigratorState) String() string {
 		return "S_STOPPING"
 	case S_STOPPED:
 		return "S_STOPPED"
+	case S_PAUSED:
+		return "S_PAUSED"
 	default:
 		return "S_INVALID"
 	}
@@ -59,6 +64,8 @@ func MigratorStateFromString(s string) (MigratorState, error) {
 		return S_STOPPING, nil
 	case "S_STOPPED":
 		return S_STOPPED, nil
+	case "S_PAUSED":
+		return S_PAUSED, nil
 	default:
 		return S_INVALID, fmt.Errorf("invalid state: '%s'", s)
 	}

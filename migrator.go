@@ -122,6 +122,35 @@ func (m *Migrator) Pause(p bool) error {
 
 	if !m.initialized {
 		m.state = S_STOPPED
+		return nil
+	}
+
+	logger.Infof(tag + "Pausing")
+	m.state = S_PAUSED
+
+	return nil
+}
+
+// Unpause will "un-pause" the migrator
+func (m *Migrator) Unpause(p bool) error {
+	tag := "Migrator.Unpause(): [" + m.SourceDsn.DBName + "] "
+
+	if !m.initialized {
+		return m.Init()
+	}
+
+	logger.Infof(tag + "Unpausing")
+	m.state = S_RUNNING
+
+	return nil
+}
+
+// Pause will "pause" the migrator
+func (m *Migrator) OldPause(p bool) error {
+	tag := "Migrator.OldPause(): [" + m.SourceDsn.DBName + "] "
+
+	if !m.initialized {
+		m.state = S_STOPPED
 		return errors.New(tag + "Not initialized")
 	}
 
@@ -254,7 +283,10 @@ func (m *Migrator) Run() error {
 		return errors.New(tag + "Not initialized or in S_STOPPING|S_STOPPED state")
 	}
 
-	m.state = S_RUNNING
+	if m.state != S_PAUSED {
+		// Don't attempt to set state to be "RUNNING" if we started a pause at the beginning
+		m.state = S_RUNNING
+	}
 
 	for x := range m.Iterations {
 		delay := paramInt(*m.Iterations[x].Parameters, ParamSleepBetweenRuns, 5)
@@ -283,6 +315,18 @@ func (m *Migrator) Run() error {
 			}
 			logger.Debugf(tag + "Entering loop")
 			for {
+				if m.state == S_PAUSED {
+					logger.Infof(tag+"Recevied state %s", m.state.String())
+					for {
+						time.Sleep(time.Second * 2)
+
+						// Check for non-pause
+						if m.state != S_PAUSED {
+							break
+						}
+					}
+				}
+
 				if m.state == S_STOPPING || m.state == S_STOPPED {
 					logger.Infof(tag+"Received state %s", m.state.String())
 					m.Close()
