@@ -120,7 +120,7 @@ var ExtractorTimestamp = func(db *sql.DB, dbName, tableName string, ts TrackingS
 		ColumnName:     ts.ColumnName,
 		// ... with updates
 		TimestampPosition: NullTimeFromTime(maxStamp),
-		LastRun:           NullTimeNow(),
+		LastRun:           NullTimeFromTime(tsStart),
 	}
 
 	(*params)[ParamMethod] = "REPLACE"

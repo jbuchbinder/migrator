@@ -118,7 +118,7 @@ var ExtractorTimestampFallback = func(db *sql.DB, dbName, tableName string, ts T
 		ColumnName:     ts.ColumnName,
 		// ... with updates
 		TimestampPosition: NullTimeFromTime(maxStamp),
-		LastRun:           NullTimeNow(),
+		LastRun:           NullTimeFromTime(tsStart),
 	}
 
 	(*params)[ParamMethod] = "REPLACE"
