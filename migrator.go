@@ -155,7 +155,8 @@ func (m *Migrator) Unpause() error {
 	return nil
 }
 
-// Pause will "pause" the migrator
+/*
+// Pause will "pause" the migrator -- old method, should NOT be used
 func (m *Migrator) OldPause(p bool) error {
 	tag := "Migrator.OldPause(): [" + m.SourceDsn.DBName + "] "
 
@@ -169,6 +170,7 @@ func (m *Migrator) OldPause(p bool) error {
 
 	return nil
 }
+*/
 
 // SetErrorCallback sets the error callback function
 func (m *Migrator) SetErrorCallback(f func(map[string]string, error)) {
