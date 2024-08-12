@@ -72,7 +72,7 @@ var ExtractorQueue = func(db *sql.DB, dbName, tableName string, ts TrackingStatu
 		}
 
 		var rows *sql.Rows
-		if strings.Index(rq.PrimaryKeyColumnName, ",") != -1 {
+		if strings.Contains(rq.PrimaryKeyColumnName, ",") {
 			// Support for multiple indices and values separated by commas
 			qs := "SELECT * FROM `" + tableName + "` WHERE "
 			for iter, x := range strings.Split(rq.PrimaryKeyColumnName, ",") {
@@ -154,7 +154,7 @@ var ExtractorQueue = func(db *sql.DB, dbName, tableName string, ts TrackingStatu
 		moreData = true
 	}
 
-	//logger.Printf(tag+"%s seq value range %d - %d", ts.ColumnName, minSeq, maxSeq)
+	//logger.Debugf(tag+"%s seq value range %d - %d", ts.ColumnName, minSeq, maxSeq)
 
 	// Manually copy old tracking object ...
 	newTs := &TrackingStatus{

@@ -33,13 +33,13 @@ var ExtractorTimestampFallback = func(db *sql.DB, dbName, tableName string, ts T
 	// Pull column names based on backup
 	colnames := strings.Split(ts.ColumnName, ",")
 	if len(colnames) < 2 {
-		err := fmt.Errorf("Requires two columns separated by a comma")
+		err := fmt.Errorf("requires two columns separated by a comma")
 		logger.Errorf(tag + "ERR: " + err.Error())
 		return false, data, ts, err
 	}
 
 	if debug {
-		logger.Printf(tag+"Query: \"SELECT * FROM `"+tableName+"` WHERE IFNULL(`"+colnames[0]+"`,`"+colnames[1]+"`) > %v LIMIT %d\"", ts.TimestampPosition, batchSize)
+		logger.Debugf(tag+"Query: \"SELECT * FROM `"+tableName+"` WHERE IFNULL(`"+colnames[0]+"`,`"+colnames[1]+"`) > %v LIMIT %d\"", ts.TimestampPosition, batchSize)
 	}
 	rows, err := db.Query("SELECT * FROM `"+tableName+"` WHERE IFNULL(`"+colnames[0]+"`,`"+colnames[1]+"`) > ? LIMIT ?", ts.TimestampPosition, batchSize)
 	if err != nil {

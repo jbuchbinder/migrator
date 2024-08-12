@@ -1,6 +1,6 @@
 module github.com/jbuchbinder/migrator
 
-go 1.22.5
+go 1.22.6
 
 require (
 	github.com/beeker1121/goque v2.1.0+incompatible
@@ -18,7 +18,6 @@ require (
 	github.com/elastic/go-windows v1.0.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/jcchavezs/porto v0.6.0 // indirect
-	github.com/joeshaw/multierror v0.0.0-20140124173710-69b34d4ec901 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/santhosh-tekuri/jsonschema v1.2.4 // indirect
