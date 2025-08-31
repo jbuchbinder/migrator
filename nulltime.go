@@ -44,7 +44,7 @@ func (nt NullTime) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON implements the json.Unmarshaler interface for encoding/json.
 func (nt *NullTime) UnmarshalJSON(data []byte) (err error) {
-	if data == nil || len(data) < 3 || string(data) == "null" {
+	if len(data) < 3 || string(data) == "null" {
 		*nt = NullTime{Valid: false}
 		return
 	}

@@ -284,7 +284,7 @@ func (m *Migrator) sleepWithInterrupt(length int) {
 func (m *Migrator) Run() error {
 	debug := paramBool(*(m.Parameters), ParamDebug, false)
 	if debug {
-		//logger.Level = log.TraceLevel
+		logger.Level = log.TraceLevel
 	}
 
 	tag := "Migrator.Run(): [" + m.SourceDsn.DBName + "] "

@@ -50,6 +50,9 @@ var (
 	// ParamSleepBetweenRuns is the parameter which defines the amount of
 	// time between runs in seconds. Int, defaults to 5.
 	ParamSleepBetweenRuns = "SleepBetweenRuns"
+	// ParamTimeout is the parameter which defines the timeout for external
+	// processes or interpreters in seconds. Int, defaults to 5.
+	ParamTimeout = "Timeout"
 )
 
 // SQLUntypedRow represents a single row of SQL data which is not strongly

@@ -1,6 +1,10 @@
 package migrator
 
 import (
+	"errors"
+	"log"
+	"time"
+
 	"github.com/robertkrimen/otto"
 	_ "github.com/robertkrimen/otto/underscore"
 )
@@ -8,16 +12,18 @@ import (
 var (
 	ottoInitialized bool
 	ottoObj         *otto.Otto
+	errHalt         = errors.New("timed out")
 )
 
 func init() {
 	TransformerMap["js"] = TableRenamerJavascript
 }
 
-// TableRenamerTransformer adjusts the table name of a destination table based
+// TableRenamerJavascript adjusts the table name of a destination table based
 // on the "TableName" parameter passed.
 var TableRenamerJavascript = func(dbName, tableName string, data []SQLRow, params *Parameters) []TableData {
-	debug := paramBool(*params, ParamDebug, false)
+	//debug := paramBool(*params, ParamDebug, false)
+	timeout := paramInt(*params, ParamTimeout, 5)
 
 	method, ok := (*params)[ParamMethod].(string)
 	if !ok {
@@ -37,7 +43,7 @@ var TableRenamerJavascript = func(dbName, tableName string, data []SQLRow, param
 		logger.Debugf("transformer[js]: Completed execution in %v", duration)
 	}()
 
-	obj.vm.Interrupt = make(chan func(), 1)
+	ottoObj.Interrupt = make(chan func(), 1)
 	go func(timeout int) {
 		time.Sleep(time.Duration(timeout) * time.Second)
 		ottoObj.Interrupt <- func() {
@@ -46,9 +52,9 @@ var TableRenamerJavascript = func(dbName, tableName string, data []SQLRow, param
 	}(timeout)
 
 	log.Printf("transformer[js]: Beginning execution")
-	_, err := ottoObj.Run(code)
+	_, err := ottoObj.Run("") // TODO: FIXME: XXX: IMPLEMENT: import code
 	if err != nil {
-		log.Warnf("transformer[js]: Returned %#v", err)
+		logger.Warnf("transformer[js]: Returned %#v", err)
 	}
 
 	return []TableData{
@@ -67,9 +73,9 @@ func initializeJsEnvironment() error {
 	}
 	ottoObj = otto.New()
 
-	ottoObj.vm.Set("log", func(call otto.FunctionCall) otto.Value {
+	ottoObj.Set("log", func(call otto.FunctionCall) otto.Value {
 		passedVal, _ := call.Argument(0).ToString()
-		logger.Debugf("transformer[js]: %s: %s", obj.user.Name, passedVal)
+		logger.Debugf("transformer[js]: %s", passedVal)
 		return otto.Value{}
 	})
 
