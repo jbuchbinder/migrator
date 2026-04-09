@@ -14,7 +14,7 @@ require (
 )
 
 require (
-	filippo.io/edwards25519 v1.1.0 // indirect
+	filippo.io/edwards25519 v1.1.1 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/beeker1121/goque v2.1.0+incompatible // indirect
 	github.com/elastic/go-licenser v0.4.2 // indirect
